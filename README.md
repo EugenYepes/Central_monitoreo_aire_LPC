@@ -21,10 +21,13 @@ tabulaciones, llaves y parentesis
     {
         int laPrimerVariable = 0;
         int cont = 0;
-        if (laPrimerVariable == 0) {
-            switch(laPrimerVariable) {
+        if (laPrimerVariable == 0) 
+        {
+            switch(laPrimerVariable) 
+            {
                 case 0:
-                    for (; cont < PRIMER_DEFINE; cont++) {
+                    for (; cont < PRIMER_DEFINE; cont++) 
+                    {
                         unaFuncion(a, b);
                     }
                     break;
