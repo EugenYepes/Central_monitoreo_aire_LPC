@@ -75,6 +75,8 @@ void SysTick_Handler(void)
 	{
 		Divisor_t1000 = DIVISOR_1000mS;
 
+		TLV_Module_Manager(); //Lo ejecuto acá porque es muy pesado para la maquina de timers
+
 		if(0 == FLAG_1000mS)
 		{
 			FLAG_1000mS = 1;
@@ -84,7 +86,6 @@ void SysTick_Handler(void)
 		{
 			FLAG_1000mS = 0;
 			GPIO_SET(1, 1, 1);
-			TLV_Module_Manager(); //Lo ejecuto acá porque es muy pesado para la maquina de timers
 		}
 	}
 //-------------------------------------------------------------------------------------

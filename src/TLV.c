@@ -19,7 +19,7 @@ void sendTLVtoUART(void)
 	//    }
 	UART0_Send(buffer, lengthBuffer);
 }
-//comentario prueba git
+
 
 
 void makeTLV(AirData_t airData, unsigned char *buffer, int *lengthBuffer)
