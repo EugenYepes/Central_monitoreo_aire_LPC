@@ -30,36 +30,36 @@ uint8_t TECLADO_Barrido_HW(void)
 
 void TECLADO_Barrido_SW(uint8_t Tecla_Actual)
 {
-	static uint8_t Tecla_Anterior = 0;
-	static uint8_t Cont = 0;
+	static uint8_t teclaAnterior = 0;
+	static uint8_t cont = 0;
 
 	if(Tecla_Actual == NO_KEY)
 	{
-		Cont = 0;
-		Tecla_Anterior = Tecla_Actual;
+		cont = 0;
+		teclaAnterior = Tecla_Actual;
 		return;
 	}
 
-	if (Tecla_Actual == Tecla_Anterior)
+	if (Tecla_Actual == teclaAnterior)
 	{
-		if(Cont > CANTIDAD_VALIDA_REBOTE)
+		if(cont > CANTIDAD_VALIDA_REBOTE)
 			return;
 
-		if(Cont == CANTIDAD_VALIDA_REBOTE)
+		if(cont == CANTIDAD_VALIDA_REBOTE)
 		{
 			Tecla_Filtrada = Tecla_Actual;
 		}
 
-		Cont++;
+		cont++;
 	}
 	else
 	{
-		Cont = 0;
-		Tecla_Anterior = Tecla_Actual;
+		cont = 0;
+		teclaAnterior = Tecla_Actual;
 	}
 }
 
-uint8_t GetKey(void)
+uint8_t getKey(void)
 {
 	uint8_t Temporal = Tecla_Filtrada;
 	Tecla_Filtrada = NO_KEY;

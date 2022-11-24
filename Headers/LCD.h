@@ -15,6 +15,7 @@
 #define		LCD_RS		0,9
 #define		LCD_E		0,8
 
+// pins used for LCD display port,pin
 #define		LCD_D7		0,0
 #define		LCD_D6		0,1
 #define		LCD_D5		0,28
@@ -24,9 +25,14 @@
 #define		LCD_D1		0,6
 #define		LCD_D0		0,31
 
+/**
+ * @brief LCD_init
+ * initialization of LCD display
+ * use GPIO_DIR and GPIO_SET to 0 for all needed pins
+ */
+void LCD_Init(void);
 void LCD_Write(uint8_t control, uint8_t data);
 void LCD_Display(uint8_t *msg, uint8_t row, uint8_t pos);
-void LCD_Init(void);
 void LCD_Delay(void);
 
 //extern int FLAG_LCD;

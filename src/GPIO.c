@@ -39,18 +39,18 @@ void GPIO_Init(void)
 
 void GPIO_DIR (uint32_t port, uint32_t pin, uint32_t mode)
 {
-if(mode == OUTPUT)
-	GPIO -> DIRSET [port] = (1 << pin); //ver linea 2281 de LPC845.h
-else
-    GPIO -> DIRCLR [port] = (1 << pin); //ver linea 2283 de LPC845.h
+	if(mode == OUTPUT)
+		GPIO -> DIRSET [port] = (1 << pin); //ver linea 2281 de LPC845.h
+	else
+		GPIO -> DIRCLR [port] = (1 << pin); //ver linea 2283 de LPC845.h
 }
 
 void GPIO_SET (uint32_t port, uint32_t pin, uint32_t state)
 {
-if(state == ON)
-	GPIO -> SET [port] |= (1 << pin); //ver linea 2275 de LPC845.h
-else
-	GPIO -> CLR [port] |= (1 << pin); //ver linea 2277 de LPC845.h
+	if(state == ON)
+		GPIO -> SET [port] |= (1 << pin); //ver linea 2275 de LPC845.h
+	else
+		GPIO -> CLR [port] |= (1 << pin); //ver linea 2277 de LPC845.h
 }
 
 uint32_t GPIO_READ(uint32_t port, uint32_t pin)
@@ -71,7 +71,7 @@ uint32_t GPIO_READ(uint32_t port, uint32_t pin)
 
 
 STRUCT_Entradas Entrada[CANTIDAD_ENTRADAS];  //Estructura con todas las entradas que uso con el antirebote
-uint32_t i;
+uint32_t i;//porque global?
 
 void GPIO_Antirebote (void)
 {

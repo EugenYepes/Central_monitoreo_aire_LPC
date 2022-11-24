@@ -33,6 +33,11 @@ typedef struct
 	STRUCT_TX0					TX;
 }UART0_Struct;
 
+/**
+ * @brief UART0_Init
+ * initialization wart for serial communication
+ * @param baudrate speed of serial communication
+ */
 void UART0_Init(uint32_t baudrate);
 void UART0_Send(uint8_t *Datos, uint32_t Tamanio);
 void UART0_PushTx(uint8_t Dato);

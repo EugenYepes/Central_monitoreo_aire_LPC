@@ -55,8 +55,6 @@ void UART0_Init(uint32_t baudrate)
 
 	// ENABLE LA UART
 	USART0->CFG |= 	(1 << 0);			// ENABLE USART0
-
-	return;
 }
 
 void UART0_PushTx(uint8_t dato)
@@ -70,6 +68,7 @@ void UART0_PushTx(uint8_t dato)
 	{
 		UART0.TX.Datos_Validos = 1;
 
+		// fuerzo el envio del primer byte
 		USART0->TXDAT = (uint8_t)UART0_PopTx();
 
 		USART0->INTENSET = (1 << 2); // int tx
@@ -180,15 +179,15 @@ int16_t POP_TX(void)      //Ojo, es signado (int16_t) porque cuando no haya nada
 */
 
 
-void UART0_Send(uint8_t *Datos, uint32_t Tamanio)
+void UART0_Send(uint8_t *data, uint32_t sizeData)
 {
 	uint32_t 	i;
 	int16_t 	Dato_Temporal;
 	
 	
-	for(i = 0 ; i < Tamanio ; i++)
+	for(i = 0 ; i < sizeData ; i++)
 	{
-		UART0_PushTx(Datos[i]);
+		UART0_PushTx(data[i]);
 	}
 	
 	if(Enviando_Datos == 0)
@@ -202,7 +201,7 @@ void UART0_Send(uint8_t *Datos, uint32_t Tamanio)
 			
 			USART0->TXDAT = (uint8_t)Dato_Temporal;
 			
-			USART0->INTENSET = (1 << 2); // int tx
+			USART0->INTENSET = (1 << 2); // enable int tx
 		}
 	}
 }

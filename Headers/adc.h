@@ -28,6 +28,10 @@ extern float Measure_TEMP;
 
 //----PROTOTIPOS DE FUNCIONES DEL ADC-------------------
 
+/**
+ * @brief ADC_Init
+ * initialization of the ADC pins
+ */
 void ADC_Init(void);
 void ADC_Disparo(uint32_t Canal);
 

@@ -10,14 +10,16 @@
 
 #include <Defines.h>
 
-/*size = sprintf(Buf,">T=%04d;ID=%04d;*?<", temp, ID);
-for( i = 0, i < 18 ; i++)
-	{
-	Chk += Buf[i];
-	Buf[18] = Chk;
-	}
+/*
+ * @brief General_Init
+ * General initialization of the microprocessor
+ */
+void General_Init(void);
 
-*/
+/*****************************************
+ * INTERN FUNCTIONS
+ *****************************************/
+
 void General_Init(void)
 {
 	GPIO_Init();
