@@ -37,6 +37,8 @@ void MAQTIMER_Descontar_Tiempo(void)
 	}
 }
 
+//Hice un cambio
+
 void MAQTIMER_Analizar_Tiempo(void)
 {
 	uint32_t i;
