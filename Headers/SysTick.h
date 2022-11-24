@@ -18,6 +18,13 @@
 #define DIVISOR_50mS	(50)	    //Para config el systick cada 50 mseg
 #define DIVISOR_10mS	(10)	    //Para config el systick cada 10 mseg
 
+/**
+ * @brief
+ * initialization of the SysTick
+ * the frequency of the SysTick is FREC_SYSTICK in milliseconds
+ * @param ticks number of ticks to complete one loop of the SysTick
+ * @return 0 on success, 1 otherwise
+ */
 uint32_t Inicializar_SysTick( uint32_t ticks );
 
 #endif /* DRIVER_TIMER_TIMER_DRIVER_H_ */

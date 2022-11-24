@@ -27,19 +27,27 @@
 //--------------------------------------------------------------------------
 //--------------------------------------------------------------------------
 
-typedef struct
+typedef struct timer
 {
     uint32_t Tiempo;
     uint32_t T_Repeticion;
     uint8_t Fin_Tiempo;
     void (*Func)(void);
-}STRUCT_Timer;
+}timer_t;
 
 //--------------------------------------------------------------------------
 //------------PROTOTIPOS DE FUNCIONES---------------------------------------
 //--------------------------------------------------------------------------
 
-void MAQTIMER_Set (uint32_t Numero, uint32_t T_Final, uint32_t T_Repeticion, void (*PFunc)(void));
+/**
+ * @brief MAQTIMER_Set
+ * fill the structure of timer, create a new timer
+ * @param Numero 		number of the timer
+ * @param T_Final 		final number to reset the number
+ * @param T_Repeticion	number of repetitions
+ * @param PFunc			function pointer, execute this function when ends the timer only void void function
+ */
+void MAQTIMER_Set(uint32_t Numero, uint32_t T_Final, uint32_t T_Repeticion, void (*PFunc)(void));
 void MAQTIMER_Descontar_Tiempo(void);
 void MAQTIMER_Analizar_Tiempo(void);
 void MAQTIMER_Timer_Stop(uint32_t Numero);

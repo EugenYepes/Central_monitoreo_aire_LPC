@@ -7,7 +7,7 @@
 
 #include <Defines.h>
 
-STRUCT_Timer T[CANTIDAD_TIMER];
+timer_t T[CANTIDAD_TIMER];
 
 void MAQTIMER_Set (uint32_t Numero, uint32_t T_Final, uint32_t T_Repeticion, void (*PFunc)(void))
 {

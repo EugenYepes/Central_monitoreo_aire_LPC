@@ -18,15 +18,6 @@
 #define OUTPUT 	1
 #define INPUT 	0
 
- //PROTOTIPOS DE FUNCIONES GPIO
-void GPIO_Init (void);   //Inicializo clock y GPIOs
-
-void GPIO_DIR (uint32_t port, uint32_t pin, uint32_t mode);  //Configuro cuales puertos y pines serán entradas o salidas
-
-void GPIO_SET (uint32_t port, uint32_t pin, uint32_t state);
-
-uint32_t GPIO_READ (uint32_t port, uint32_t pin);
-
 //--------------------------------------------------------------------------
 //ANTIREBOTE Y ENUNCIADO DE ENTRADAS GPIO-----------------------------------
 //--------------------------------------------------------------------------
@@ -55,6 +46,20 @@ typedef struct
 
 void GPIO_Antirebote (void);
 uint32_t GPIO_Leer_Filtrada (uint32_t Numero);
+
+
+//PROTOTIPOS DE FUNCIONES GPIO
+/**
+* @brief GPIO_Init
+* initialization of the all GPiOs and the clock
+*/
+void GPIO_Init (void);   //Inicializo clock y GPIOs
+
+void GPIO_DIR (uint32_t port, uint32_t pin, uint32_t mode);  //Configuro cuales puertos y pines serán entradas o salidas
+
+void GPIO_SET (uint32_t port, uint32_t pin, uint32_t state);
+
+uint32_t GPIO_READ (uint32_t port, uint32_t pin);
 
 //--------------------------------------------------------------------------
 //--------------------------------------------------------------------------

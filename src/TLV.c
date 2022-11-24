@@ -25,6 +25,8 @@ void makeTLV(AirData_t airData, unsigned char *buffer, int *lengthBuffer)
     unsigned char auxBuffer[MAX_SIZE_BUFF] = {0};
     unsigned char auxDataBuffer[10] = {0};
     unsigned char auxDataSize = 0;
+    unsigned char checkByte = 0x00;
+    uint32_t idx;
     *lengthBuffer = 0;
 
     //printf("Air data in function %s %.3f\t%.3f\t%.3f\t%.3f\n", __func__, airData.sulfurDioxide, airData.carbonMonoxide, airData.lowerExplosiveLimit, airData.temperature);
@@ -67,6 +69,12 @@ void makeTLV(AirData_t airData, unsigned char *buffer, int *lengthBuffer)
     (*lengthBuffer)++;
     *lengthBuffer += sprintf((char*)auxBuffer + *lengthBuffer, "%.3f", airData.temperature);
 
-   // *buffer = (unsigned char*)malloc(*lengthBuffer);
+    // set a check byte to send
+    for (idx = 0; idx < *lengthBuffer; idx++) {
+    	checkByte ^= auxBuffer[idx];
+    }
+    *(auxBuffer + *lengthBuffer) = checkByte;
+    (*lengthBuffer)++;
+
     memcpy(buffer, auxBuffer, *lengthBuffer);
 }

@@ -37,51 +37,95 @@
 #define ENABLED							1
 #define DISABLED						0
 
-#define MeasModeEN_AlarmsDIS			1       // ESTADO PRIMARIO
-#define MeasModeEN_AlarmsEN				2
-#define MeasModeDIS_AlarmsDIS_SMODE 	3
-#define Settings						4
-#define Show_SO2 						5
-#define Show_CO 						6
-#define Show_EX 						7
-#define Show_Temp 						8
-#define Show_DateTime 					9
-#define Show_IDSN  						10
 
-#define Calibration 					11
-#define AlarmsSettings					12
-#define Set_DateTime 					13
-#define ID_Settings 					14
-
-#define Set_ID 							15
-
-#define Set_Year 						16
-#define Set_Month 						17
-#define Set_Day 						18
-#define Set_Hour 						19
-#define Set_Minute 						20
-
-#define Set_Alarms_SO2 					21
-#define Set_Alarm_SO2_LO 				22
-#define Set_Alarm_SO2_HI 				23
-#define Set_Alarms_CO 					24
-#define Set_Alarm_CO_LO 				25
-#define Set_Alarm_CO_HI 				26
-#define Set_Alarms_EX 					27
-#define Set_Alarm_EX_LO 				28
-#define Set_Alarm_EX_HI 				29
-
-#define Calibrate_SO2 					30
-#define Calibrate_SO2_ZERO 				31
-#define Calibrate_SO2_SPAN 				32
-#define Calibrate_CO 					33
-#define Calibrate_CO_ZERO 				34
-#define Calibrate_CO_SPAN 				35
-#define Calibrate_EX 					36
-#define Calibrate_EX_ZERO 				37
-#define Calibrate_EX_SPAN 				38
-#define Calibrate_Temp 					39
-#define Calibrate_Temp_SPAN 			40
+typedef enum {
+	STATE_INIT,
+	MeasModeEN_AlarmsDIS,
+	MeasModeEN_AlarmsEN,
+	MeasModeDIS_AlarmsDIS_SMODE,
+	Settings,
+	Show_SO2,
+	Show_CO,
+	Show_EX,
+	Show_Temp,
+	Show_DateTime,
+	Show_IDSN,
+	Calibration,
+	AlarmsSettings,
+	Set_DateTime,
+	ID_Settings,
+	Set_ID,
+	Set_Year,
+	Set_Month,
+	Set_Day,
+	Set_Hour,
+	Set_Minute,
+	Set_Alarms_SO2,
+	Set_Alarm_SO2_LO,
+	Set_Alarm_SO2_HI,
+	Set_Alarms_CO,
+	Set_Alarm_CO_LO,
+	Set_Alarm_CO_HI,
+	Set_Alarms_EX,
+	Set_Alarm_EX_LO,
+	Set_Alarm_EX_HI,
+	Calibrate_SO2,
+	Calibrate_SO2_ZERO,
+	Calibrate_SO2_SPAN,
+	Calibrate_CO,
+	Calibrate_CO_ZERO,
+	Calibrate_CO_SPAN,
+	Calibrate_EX,
+	Calibrate_EX_ZERO,
+	Calibrate_EX_SPAN,
+	Calibrate_Temp,
+	Calibrate_Temp_SPAN
+}states_t;
+//#define MeasModeEN_AlarmsDIS			1       // ESTADO PRIMARIO
+//#define MeasModeEN_AlarmsEN				2
+//#define MeasModeDIS_AlarmsDIS_SMODE 	3
+//#define Settings						4
+//#define Show_SO2 						5
+//#define Show_CO 						6
+//#define Show_EX 						7
+//#define Show_Temp 						8
+//#define Show_DateTime 					9
+//#define Show_IDSN  						10
+//
+//#define Calibration 					11
+//#define AlarmsSettings					12
+//#define Set_DateTime 					13
+//#define ID_Settings 					14
+//
+//#define Set_ID 							15
+//
+//#define Set_Year 						16
+//#define Set_Month 						17
+//#define Set_Day 						18
+//#define Set_Hour 						19
+//#define Set_Minute 						20
+//
+//#define Set_Alarms_SO2 					21
+//#define Set_Alarm_SO2_LO 				22
+//#define Set_Alarm_SO2_HI 				23
+//#define Set_Alarms_CO 					24
+//#define Set_Alarm_CO_LO 				25
+//#define Set_Alarm_CO_HI 				26
+//#define Set_Alarms_EX 					27
+//#define Set_Alarm_EX_LO 				28
+//#define Set_Alarm_EX_HI 				29
+//
+//#define Calibrate_SO2 					30
+//#define Calibrate_SO2_ZERO 				31
+//#define Calibrate_SO2_SPAN 				32
+//#define Calibrate_CO 					33
+//#define Calibrate_CO_ZERO 				34
+//#define Calibrate_CO_SPAN 				35
+//#define Calibrate_EX 					36
+//#define Calibrate_EX_ZERO 				37
+//#define Calibrate_EX_SPAN 				38
+//#define Calibrate_Temp 					39
+//#define Calibrate_Temp_SPAN 			40
 
 //----DEFINES DE LA MAQUINA DE ESTADOS PARA DISPARAR LOS 4 CANALES DEL ADC-----------------
 
@@ -114,10 +158,10 @@ void TLV_Module_Manager(void);
 //-----PROTOTIPOS DEL MOTOR DE INICIALIZACION DE LA APLICACIÓN ----------------------------
 
 void Unit_WakeUp(void);
-void WakeUp_Step1_Hello1(void);
-void WakeUp_Step1_Hello2(void);
-void WakeUp_Step1_Hello3(void);
-void WakeUp_Step1_Hello4(void);
+//void WakeUp_Step1_Hello1(void);
+//void WakeUp_Step1_Hello2(void);
+//void WakeUp_Step1_Hello3(void);
+//void WakeUp_Step1_Hello4(void);
 void WakeUp_Step2_Setup(void);
 void WakeUp_Step3_SN(void);
 void WakeUp_Step4_GasList(void);
@@ -226,7 +270,7 @@ typedef struct DateTime {
 	uint32_t Day;
 	uint32_t Hour;
 	uint32_t Minute;
-} DateTime_t;    //El tipo de dato es DateTime_t, de la estructura DateTime
+} DateTime_t;
 
 //------Estructura de la unidad------------------------------------------------
 

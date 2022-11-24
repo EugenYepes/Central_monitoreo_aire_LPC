@@ -35,8 +35,9 @@ void General_Init(void);
 
 uint8_t TECLADO_Barrido_HW(void);
 void TECLADO_Barrido_SW(uint8_t Tecla_Actual);
-uint8_t GetKey(void);
+uint8_t getKey(void);
 
 #define 	NO_KEY		0xff
+#define NUM_ELEMENTS(data) (sizeof(data)/sizeof(*data)) - 1
 
 #endif /* DEFINES_H_ */

@@ -21,7 +21,7 @@ uint32_t FLAG_EX_FILTER = 0;
 UnitParameters_t Unit_Data;        //Contiene toda la configuración básica del equipo
 UnitParameters_t Unit_Data_NEW;    //Contiene la configuración provisoria al momento del seteo
 
-uint32_t STATE = 0;
+states_t STATE = 0;
 uint8_t STATE_ADC = 0;
 
 //---------------FLAGS: POR SER GLOBALES SE DECLARAN 8 BITS PARA AHORRAR MEMORIA ESTATICA----------------
@@ -241,33 +241,50 @@ void Setup_Default_Parameters(void)      //CARGA PARAMETROS DE FABRICA SI LA MEM
 
 void Unit_WakeUp(void)
 {
-	STATE = 0;     		//Antes que nada me aseguro que esté deshabilitada la máquina de estados del menú contextual
-	MAQTIMER_Set(TIMER_WakeUp, 500, 0, WakeUp_Step1_Hello1);     //Espera que enciendan todos los perifericos
-}
-void WakeUp_Step1_Hello1(void)
-{
-	LCD_Display("Multigas Monitor", 0 , 0);   //Bienvenida
-
-	MAQTIMER_Set(TIMER_WakeUp, 2000, 0, WakeUp_Step1_Hello2);
-}
-void WakeUp_Step1_Hello2(void)
-{
-	LCD_Display("UTN FRBA Info II", 0 , 0);   //Bienvenida
-
-	MAQTIMER_Set(TIMER_WakeUp, 3000, 0, WakeUp_Step1_Hello3);
-}
-void WakeUp_Step1_Hello3(void)
-{
-	LCD_Display("Pablo Victoria K", 0 , 0);   //Bienvenida
-
-	MAQTIMER_Set(TIMER_WakeUp, 3000, 0, WakeUp_Step1_Hello4);
-}
-void WakeUp_Step1_Hello4(void)
-{
-	LCD_Display(" Eugenio Yepes  ", 0 , 0);   //Bienvenida
-
+	struct wakeUpMessage {
+		uint32_t time;
+		char *text;
+	};
+	struct wakeUpMessage message[] = {{500, ""}, {2000, "Multigas Monitor"}, {3000, "UTN FRBA Info II"}, {3000, "Pablo Victoria K"}, {3000, "Eugenio Yepes"}};
+	uint8_t idx;
+	STATE = STATE_INIT;
+	for (idx = 0; idx < NUM_ELEMENTS(message); idx++) {
+		MAQTIMER_Set(TIMER_WakeUp, message[idx].time, 0, NULL);
+		LCD_Display(message[idx].text, 0 , 0);
+	}
+	// continue with the initialization flow
 	MAQTIMER_Set(TIMER_WakeUp, 3000, 0, WakeUp_Step2_Setup);
 }
+
+//void Unit_WakeUp(void)
+//{
+//	STATE = 0;     		//Antes que nada me aseguro que esté deshabilitada la máquina de estados del menú contextual
+//	MAQTIMER_Set(TIMER_WakeUp, 500, 0, WakeUp_Step1_Hello1);     //Espera que enciendan todos los perifericos
+//}
+//void WakeUp_Step1_Hello1(void)
+//{
+//	LCD_Display("Multigas Monitor", 0 , 0);   //Bienvenida
+//
+//	MAQTIMER_Set(TIMER_WakeUp, 2000, 0, WakeUp_Step1_Hello2);
+//}
+//void WakeUp_Step1_Hello2(void)
+//{
+//	LCD_Display("UTN FRBA Info II", 0 , 0);   //Bienvenida
+//
+//	MAQTIMER_Set(TIMER_WakeUp, 3000, 0, WakeUp_Step1_Hello3);
+//}
+//void WakeUp_Step1_Hello3(void)
+//{
+//	LCD_Display("Pablo Victoria K", 0 , 0);   //Bienvenida
+//
+//	MAQTIMER_Set(TIMER_WakeUp, 3000, 0, WakeUp_Step1_Hello4);
+//}
+//void WakeUp_Step1_Hello4(void)
+//{
+//	LCD_Display(" Eugenio Yepes  ", 0 , 0);   //Bienvenida
+//
+//	MAQTIMER_Set(TIMER_WakeUp, 3000, 0, WakeUp_Step2_Setup);
+//}
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 //----------IMPORTANTE MOMENTO DE CONFIGURACIÓN DE TODA LA UNIDAD--------------------------------------------------------------------------------------------------
@@ -375,7 +392,7 @@ void EX_ADC_Conversion(void)
 
 void STATEMACHINE_ContextMenu(void)
 {
-	uint8_t Tecla = GetKey();
+	uint8_t Tecla = getKey();
 
 	switch(STATE)
 	{
