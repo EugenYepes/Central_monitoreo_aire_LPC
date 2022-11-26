@@ -20,8 +20,6 @@ void sendTLVtoUART(void)
 	UART0_Send(buffer, lengthBuffer);
 }
 
-
-
 void makeTLV(AirData_t airData, unsigned char *buffer, int *lengthBuffer)
 {
     unsigned char auxBuffer[MAX_SIZE_BUFF] = {0};
