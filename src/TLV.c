@@ -32,6 +32,7 @@ void makeTLV(AirData_t airData, unsigned char *buffer, int *lengthBuffer)
     //printf("Air data in function %s %.3f\t%.3f\t%.3f\t%.3f\n", __func__, airData.sulfurDioxide, airData.carbonMonoxide, airData.lowerExplosiveLimit, airData.temperature);
     //init byte
     *(auxBuffer + *lengthBuffer) = 0xFF;
+    (*lengthBuffer)++;
     // sulfurDioxide
     memcpy(auxBuffer + *lengthBuffer, TAG_SULFUR_DIOXIDE, SIZEOF_TAG(TAG_SULFUR_DIOXIDE));
     *lengthBuffer += SIZEOF_TAG(TAG_SULFUR_DIOXIDE);
