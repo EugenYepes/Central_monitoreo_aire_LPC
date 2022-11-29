@@ -48,8 +48,13 @@ typedef enum {
 	Show_CO,
 	Show_EX,
 	Show_Temp,
+	Show_SO2_Alarms,
+	Show_CO_Alarms,
+	Show_EX_Alarms,
 	Show_DateTime,
 	Show_IDSN,
+	Receive_Data,
+	Receive_Data_LINK,
 	Calibration,
 	AlarmsSettings,
 	Set_DateTime,
@@ -158,10 +163,10 @@ void TLV_Module_Manager(void);
 //-----PROTOTIPOS DEL MOTOR DE INICIALIZACION DE LA APLICACIÓN ----------------------------
 
 void Unit_WakeUp(void);
-//void WakeUp_Step1_Hello1(void);
-//void WakeUp_Step1_Hello2(void);
-//void WakeUp_Step1_Hello3(void);
-//void WakeUp_Step1_Hello4(void);
+void WakeUp_Step1_Hello1(void);
+void WakeUp_Step1_Hello2(void);
+void WakeUp_Step1_Hello3(void);
+void WakeUp_Step1_Hello4(void);
 void WakeUp_Step2_Setup(void);
 void WakeUp_Step3_SN(void);
 void WakeUp_Step4_GasList(void);
@@ -184,36 +189,39 @@ void STATE_Show_SO2(uint8_t);
 void STATE_Show_CO(uint8_t);
 void STATE_Show_EX(uint8_t);
 void STATE_Show_Temp(uint8_t);
+void STATE_Show_SO2_Alarms(uint8_t Tecla);
+void STATE_Show_CO_Alarms(uint8_t Tecla);
+void STATE_Show_EX_Alarms(uint8_t Tecla);
 void STATE_Calibration(uint8_t);
 void STATE_AlarmsSettings(uint8_t);
 void STATE_ID_Settings(uint8_t);
 void STATE_Set_ID(uint8_t);
 void STATE_Set_DateTime(uint8_t);
-void STATE_Set_Year(uint8_t);
-void STATE_Set_Month(uint8_t);
-void STATE_Set_Day(uint8_t);
-void STATE_Set_Hour(uint8_t);
-void STATE_Set_Minute(uint8_t);
+void STATE_Set_Year(uint8_t, uint8_t);
+void STATE_Set_Month(uint8_t, uint8_t);
+void STATE_Set_Day(uint8_t, uint8_t);
+void STATE_Set_Hour(uint8_t, uint8_t);
+void STATE_Set_Minute(uint8_t, uint8_t);
 void STATE_Calibrate_SO2(uint8_t);
-void STATE_Calibrate_SO2_ZERO(uint8_t);
-void STATE_Calibrate_SO2_SPAN(uint8_t);
+void STATE_Calibrate_SO2_ZERO(uint8_t, uint8_t);
+void STATE_Calibrate_SO2_SPAN(uint8_t, uint8_t);
 void STATE_Calibrate_CO(uint8_t);
-void STATE_Calibrate_CO_ZERO(uint8_t);
-void STATE_Calibrate_CO_SPAN(uint8_t);
+void STATE_Calibrate_CO_ZERO(uint8_t, uint8_t);
+void STATE_Calibrate_CO_SPAN(uint8_t, uint8_t);
 void STATE_Calibrate_EX(uint8_t);
-void STATE_Calibrate_EX_ZERO(uint8_t);
-void STATE_Calibrate_EX_SPAN(uint8_t);
+void STATE_Calibrate_EX_ZERO(uint8_t, uint8_t);
+void STATE_Calibrate_EX_SPAN(uint8_t, uint8_t);
 void STATE_Calibrate_Temp(uint8_t);
-void STATE_Calibrate_Temp_SPAN(uint8_t);
+void STATE_Calibrate_Temp_SPAN(uint8_t, uint8_t);
 void STATE_Set_Alarms_SO2(uint8_t);
-void STATE_Set_Alarm_SO2_LO(uint8_t);
-void STATE_Set_Alarm_SO2_HI(uint8_t);
+void STATE_Set_Alarm_SO2_LO(uint8_t, uint8_t);
+void STATE_Set_Alarm_SO2_HI(uint8_t, uint8_t);
 void STATE_Set_Alarms_CO(uint8_t);
-void STATE_Set_Alarm_CO_LO(uint8_t);
-void STATE_Set_Alarm_CO_HI(uint8_t);
+void STATE_Set_Alarm_CO_LO(uint8_t, uint8_t);
+void STATE_Set_Alarm_CO_HI(uint8_t, uint8_t);
 void STATE_Set_Alarms_EX(uint8_t);
-void STATE_Set_Alarm_EX_LO(uint8_t);
-void STATE_Set_Alarm_EX_HI(uint8_t);
+void STATE_Set_Alarm_EX_LO(uint8_t, uint8_t);
+void STATE_Set_Alarm_EX_HI(uint8_t, uint8_t);
 
 //-----PROTOTIPOS DE LA MAQUINA DE ESTADOS PARA DISPARAR LOS 4 CANALES DEL ADC-------
 
@@ -244,39 +252,40 @@ typedef struct TEMP_Parameters{
 typedef struct SO2_Parameters{
 	float ZERO_Factor;
     float SPAN_Factor;
-    uint32_t LO_ALarm;
-    uint32_t HI_ALarm;
+    uint8_t LO_ALarm;
+    uint8_t HI_ALarm;
 }SO2_Parameters_t;
 
 typedef struct CO_Parameters{
 	float ZERO_Factor;
     float SPAN_Factor;
-    uint32_t LO_ALarm;
-    uint32_t HI_ALarm;
+    uint8_t LO_ALarm;
+    uint8_t HI_ALarm;
 }CO_Parameters_t;
 
 typedef struct EX_Parameters{
 	float ZERO_Factor;
     float SPAN_Factor;
-    uint32_t LO_ALarm;
-    uint32_t HI_ALarm;
+    uint8_t LO_ALarm;
+    uint8_t HI_ALarm;
 }EX_Parameters_t;
 
 //------Estructura de RTC------------------------------------------------------
 
 typedef struct DateTime {
-	uint32_t Year;
-	uint32_t Month;
-	uint32_t Day;
-	uint32_t Hour;
-	uint32_t Minute;
+	int32_t Year;
+	int32_t Month;
+	int32_t Day;
+	int32_t Hour;
+	int32_t Minute;
+	int32_t Second;
 } DateTime_t;
 
 //------Estructura de la unidad------------------------------------------------
 
 typedef struct UnitParameters {
-    uint32_t Serial_Number;
-    uint32_t ID;
+    int32_t Serial_Number;
+    int32_t ID;
     DateTime_t Data;
     TEMP_Parameters_t TEMP_Config;
     SO2_Parameters_t SO2_Config;

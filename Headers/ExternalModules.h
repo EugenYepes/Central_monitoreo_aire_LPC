@@ -16,6 +16,7 @@
 void EXTERNALMODULES_Lo_Alarm(uint32_t command);
 void EXTERNALMODULES_Hi_Alarm(uint32_t command);
 void EXTERNALMODULES_Status_Leds(uint32_t command);
+void EXTERNALMODULES_Clock(void);
 
 //--------------------------------------------------------------------------
 //--------------------------------------------------------------------------

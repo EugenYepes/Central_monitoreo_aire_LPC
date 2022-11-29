@@ -8,7 +8,7 @@
 #ifndef MAQ_TIMERS_H_
 #define MAQ_TIMERS_H_
 
-#define CANTIDAD_TIMER  9
+#define CANTIDAD_TIMER  10
 
 #define TIMER_STATEMACHINE_ContextMenu  0
 #define TIMER_KEYBOARD_Sampler			1
@@ -20,8 +20,9 @@
 #define TIMER_TEMP_ADC_Conversion		6
 #define TIMER_WakeUp					7
 #define TIMER_Alarms_Sentinel			8
+#define TIMER_EXTERNALMODULES_Clock		9
 
-//#define TIMER_TLV_Module_Manager		9
+//#define TIMER_TLV_Module_Manager		10
 
 
 //--------------------------------------------------------------------------

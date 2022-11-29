@@ -22,6 +22,11 @@
 #define TAG_LEL "\x5F\x02"
 #define TAG_TEMPERATURE "\x5F\x03"
 
+#define REQUEST_DATE '1'
+#define TAG_REQUEST "\x5F\x04"
+
+#define TAG_DATE_TIME "\x5F\x05"
+
 #define MAX_SIZE_BUFF 50
 #define SIZEOF_TAG(data) (sizeof(data)/sizeof(*data)) - 1
 #define NUM_DECIMALS_FORMAT "%.3f"
@@ -39,7 +44,10 @@ typedef struct AirData {
 //PROTOTIPOS DE FUNCIONES TLV
 
 void sendTLVtoUART(void);
+void sendTLVtoUART_request(void);
+void Rx_TLVParser(void);
 void makeTLV(AirData_t airData, unsigned char *buffer, int *lengthBuffer);
+int makeTLVrequest(unsigned char *buffer, int *lengthBuffer);
 
 //--------------------------------------------------------------------------
 //--------------------------------------------------------------------------

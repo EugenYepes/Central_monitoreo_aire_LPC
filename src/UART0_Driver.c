@@ -27,8 +27,9 @@ void UART0_Init(uint32_t baudrate)
 	SYSCON->SYSAHBCLKCTRL0 |= (1 << 14);					// 14 = UART0
 
 	// CONFIGURO LA MATRIX
-	//SWM0->PINASSIGN.PINASSIGN0 = (8 << 0) | (9 << 8);			// TX0 = P0.8	RX0 = P0.9
-	SWM0->PINASSIGN.PINASSIGN0 = (10 << 0) | (11 << 8);		// TX0 = P0.10	RX0 = P0.11
+	//SWM0->PINASSIGN.PINASSIGN0 = (8 << 0) | (9 << 8);		// TX0 = P0.8	RX0 = P0.9
+	//SWM0->PINASSIGN.PINASSIGN0 = (10 << 0) | (11 << 8);	// TX0 = P0.10	RX0 = P0.11
+	SWM0->PINASSIGN.PINASSIGN0 = (27 << 0) | (26 << 8);		// TX0 = P0.27	RX0 = P0.26
 
 	// CONFIGURACION GENERAL
 	USART0->CFG = 	(0 << 0)		// 0=DISABLE 1=ENABLE
@@ -98,6 +99,20 @@ void UART0_PushRx(uint8_t dato)
 	UART0.RX.Indice_in %= UART0_TAMANIO_COLA_RX;
 }
 
+int8_t UART0_PopRx(uint8_t *dato)
+{
+	int8_t status = -1;
+
+	if ( UART0.RX.Indice_in != UART0.RX.Indice_out )
+	{
+		*dato = UART0.TX.Buffer[UART0.RX.Indice_out];
+		UART0.RX.Indice_out ++;
+		UART0.RX.Indice_out %= UART0_TAMANIO_COLA_RX;
+	}
+	return status;
+}
+
+/*
 int32_t UART0_PopRx(void)
 {
 	int32_t dato = -1;
@@ -110,6 +125,7 @@ int32_t UART0_PopRx(void)
 	}
 	return dato;
 }
+*/
 
 //----------------------------------------------------
 

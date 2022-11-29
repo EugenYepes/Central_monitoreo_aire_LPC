@@ -34,6 +34,10 @@
 #define LED_STATUS_ONLINE			0,21
 #define LED_STATUS_OFFLINE			0,24
 
+//#define LED_ROJO 					1,2  	//Led rojo del stick
+#define LED_AZUL 					1,1		//Led azul del stick
+//#define LED_VERDE 				1,0		//Led verde del stick
+
 #define CANTIDAD_ENTRADAS 			3       //Cantidad de entradas GPIO para barrer con el antirebote
 #define CANTIDAD_VALIDA_REBOTE 		30		//Cantidad de muestras a tomar para considerar un estado valido por antirebote
 

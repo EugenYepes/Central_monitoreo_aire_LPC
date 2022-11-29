@@ -24,19 +24,24 @@ UnitParameters_t Unit_Data_NEW;    //Contiene la configuración provisoria al mo
 states_t STATE = 0;
 uint8_t STATE_ADC = 0;
 
+uint8_t mem = 0;
+
 //---------------FLAGS: POR SER GLOBALES SE DECLARAN 8 BITS PARA AHORRAR MEMORIA ESTATICA----------------
+uint8_t ExternalClock = DISABLED;
 uint8_t MeasMode = DISABLED;
-uint8_t ServiceMode = ENABLED;
 uint8_t AlarmsMode = DISABLED;
+uint8_t ReceiveDataMode = DISABLED;
+uint8_t dataParsed = 0; // 0 cuando cuando es necesario parsear los datos, 1 cuando ya se parseo
 //-------------------------------------------------------------------------------------------------------
 
-uint8_t Buffer_String[20];
+uint8_t LCD_Buffer_Line1[20];
+uint8_t LCD_Buffer_Line2[20];
 
 
 
 void Alarms_Sentinel(void)
 {
-	if( (DISABLED == ServiceMode) && (ENABLED == AlarmsMode) && ((Data_Filtered.SO2_Reading >= Unit_Data.SO2_Config.LO_ALarm) || (Data_Filtered.CO_Reading >= Unit_Data.CO_Config.LO_ALarm) || (Data_Filtered.EX_Reading >= Unit_Data.EX_Config.LO_ALarm)) )
+	if( (ENABLED == AlarmsMode) && ((Data_Filtered.SO2_Reading >= Unit_Data.SO2_Config.LO_ALarm) || (Data_Filtered.CO_Reading >= Unit_Data.CO_Config.LO_ALarm) || (Data_Filtered.EX_Reading >= Unit_Data.EX_Config.LO_ALarm)) )
 	{
 		EXTERNALMODULES_Lo_Alarm(ON);
 
@@ -239,6 +244,8 @@ void Setup_Default_Parameters(void)      //CARGA PARAMETROS DE FABRICA SI LA MEM
 	Unit_Data.EX_Config.HI_ALarm = DEFAULT_EX_HI_ALARM;
 }
 
+
+/*
 void Unit_WakeUp(void)
 {
 	struct wakeUpMessage {
@@ -248,43 +255,45 @@ void Unit_WakeUp(void)
 	struct wakeUpMessage message[] = {{500, ""}, {2000, "Multigas Monitor"}, {3000, "UTN FRBA Info II"}, {3000, "Pablo Victoria K"}, {3000, "Eugenio Yepes"}};
 	uint8_t idx;
 	STATE = STATE_INIT;
-	for (idx = 0; idx < NUM_ELEMENTS(message); idx++) {
+	for (idx = 0; idx < NUM_ELEMENTS(message); idx++)
+	{
 		MAQTIMER_Set(TIMER_WakeUp, message[idx].time, 0, NULL);
-		LCD_Display(message[idx].text, 0 , 0);
+		LCD_Full_Display(message[idx].text, " ");
 	}
 	// continue with the initialization flow
 	MAQTIMER_Set(TIMER_WakeUp, 3000, 0, WakeUp_Step2_Setup);
 }
+*/
 
-//void Unit_WakeUp(void)
-//{
-//	STATE = 0;     		//Antes que nada me aseguro que esté deshabilitada la máquina de estados del menú contextual
-//	MAQTIMER_Set(TIMER_WakeUp, 500, 0, WakeUp_Step1_Hello1);     //Espera que enciendan todos los perifericos
-//}
-//void WakeUp_Step1_Hello1(void)
-//{
-//	LCD_Display("Multigas Monitor", 0 , 0);   //Bienvenida
-//
-//	MAQTIMER_Set(TIMER_WakeUp, 2000, 0, WakeUp_Step1_Hello2);
-//}
-//void WakeUp_Step1_Hello2(void)
-//{
-//	LCD_Display("UTN FRBA Info II", 0 , 0);   //Bienvenida
-//
-//	MAQTIMER_Set(TIMER_WakeUp, 3000, 0, WakeUp_Step1_Hello3);
-//}
-//void WakeUp_Step1_Hello3(void)
-//{
-//	LCD_Display("Pablo Victoria K", 0 , 0);   //Bienvenida
-//
-//	MAQTIMER_Set(TIMER_WakeUp, 3000, 0, WakeUp_Step1_Hello4);
-//}
-//void WakeUp_Step1_Hello4(void)
-//{
-//	LCD_Display(" Eugenio Yepes  ", 0 , 0);   //Bienvenida
-//
-//	MAQTIMER_Set(TIMER_WakeUp, 3000, 0, WakeUp_Step2_Setup);
-//}
+void Unit_WakeUp(void)
+{
+	STATE = STATE_INIT;     		//Antes que nada me aseguro que esté deshabilitada la máquina de estados del menú contextual
+	MAQTIMER_Set(TIMER_WakeUp, 500, 0, WakeUp_Step1_Hello1);     //Espera que enciendan todos los perifericos
+}
+void WakeUp_Step1_Hello1(void)
+{
+	LCD_Full_Display("  Industrial", "  Gas Monitor");   //Bienvenida
+
+	MAQTIMER_Set(TIMER_WakeUp, 2000, 0, WakeUp_Step1_Hello2);
+}
+void WakeUp_Step1_Hello2(void)
+{
+	LCD_Full_Display("    Made in", "   Argentina");   //Bienvenida
+
+	MAQTIMER_Set(TIMER_WakeUp, 2000, 0, WakeUp_Step1_Hello3);
+}
+void WakeUp_Step1_Hello3(void)
+{
+	LCD_Full_Display("   UTN FRBA", "Informatica II");   //Bienvenida
+
+	MAQTIMER_Set(TIMER_WakeUp, 3000, 0, WakeUp_Step1_Hello4);
+}
+void WakeUp_Step1_Hello4(void)
+{
+	LCD_Full_Display("Pablo Victoria", "Eugenio Yepes");   //Bienvenida
+
+	MAQTIMER_Set(TIMER_WakeUp, 3000, 0, WakeUp_Step2_Setup);
+}
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 //----------IMPORTANTE MOMENTO DE CONFIGURACIÓN DE TODA LA UNIDAD--------------------------------------------------------------------------------------------------
@@ -292,7 +301,7 @@ void Unit_WakeUp(void)
 
 void WakeUp_Step2_Setup(void)
 {
-	LCD_Display("Setting up unit ", 0 , 0);
+	LCD_Full_Display("Setting Up Unit", "Please Wait...");
 
 	EXTERNALMODULES_Lo_Alarm(OFF);												//Me aseguro de que la alarma baja este apagada
 
@@ -316,41 +325,40 @@ void WakeUp_Step2_Setup(void)
 
 void WakeUp_Step3_SN(void)
 {
-	sprintf(Buffer_String,"S/N: %d   ", Unit_Data.Serial_Number);
-	LCD_Display(Buffer_String, 0 , 0);
-
+	sprintf(LCD_Buffer_Line1,"S/N: %d", Unit_Data.Serial_Number);
+	sprintf(LCD_Buffer_Line2,"ID: %03d", Unit_Data.ID);
+	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 	MAQTIMER_Set(TIMER_WakeUp, 2000, 0, WakeUp_Step4_GasList);
 }
 void WakeUp_Step4_GasList(void)
 {
-	LCD_Display("Gases: SO2 CO EX", 0 , 0);
-
+	LCD_Full_Display("Gases:", "SO2 + CO + Ex");
 	MAQTIMER_Set(TIMER_WakeUp, 2000, 0, WakeUp_Step5_WarmUp);
 }
 void WakeUp_Step5_WarmUp(void)
 {
-	LCD_Display("Warm Up... Wait ", 0 , 0);
-
+	LCD_Full_Display("Warm up sensors", "Please wait...");
 	MAQTIMER_Set(TIMER_WakeUp, 10000, 0, WakeUp_Step6_StartUnit);
 }
 void WakeUp_Step6_StartUnit(void)
 {
 	MeasMode = ENABLED;              //Configura modo de medición para MeasModeEN_AlarmsEN
 	AlarmsMode = ENABLED;
-	ServiceMode = DISABLED;
+	ExternalClock = ENABLED;
 
-	LCD_Display("MeasEN AlarmsEN", 0 , 0);
-	STATE = MeasModeEN_AlarmsEN;			  //Habilita la máquina de estados del menú contextual
+	LCD_Full_Display("Meas Mode:EN","Alarms:EN");
+
+	STATE = MeasModeEN_AlarmsEN;			 //Habilita la máquina de estados del menú contextual
 }
 
 
 void MeasMode_Sentinel(void)
 {
-	if((ENABLED == MeasMode) && (DISABLED == ServiceMode))
+	if(ENABLED == MeasMode)
 	{
 		EXTERNALMODULES_Status_Leds(ONLINE);
 	}
-	if((DISABLED == MeasMode) || (ENABLED == ServiceMode))
+	if(DISABLED == MeasMode)
 	{
 		EXTERNALMODULES_Status_Leds(OFFLINE);
 	}
@@ -358,12 +366,15 @@ void MeasMode_Sentinel(void)
 
 void TLV_Module_Manager(void)
 {
-	if((ENABLED == MeasMode) && (DISABLED == ServiceMode))
+	if(ENABLED == MeasMode)
 	{
 		sendTLVtoUART();
 	}
+	if(ENABLED == ReceiveDataMode)
+	{
+		sendTLVtoUART_request();
+	}
 }
-
 
 void Start_ADC_Conversions(void)
 {
@@ -393,6 +404,7 @@ void EX_ADC_Conversion(void)
 void STATEMACHINE_ContextMenu(void)
 {
 	uint8_t Tecla = getKey();
+	uint8_t Tecla_Multi = getKey_Multi();
 
 	switch(STATE)
 	{
@@ -439,9 +451,30 @@ void STATEMACHINE_ContextMenu(void)
     	     STATE_Show_Temp(Tecla);
     	     break;
 
+        case Show_SO2_Alarms:
+    	     STATE_Show_SO2_Alarms(Tecla);
+    	     break;
+
+    	case Show_CO_Alarms:
+    	     STATE_Show_CO_Alarms(Tecla);
+    	     break;
+
+    	case Show_EX_Alarms:
+    	     STATE_Show_EX_Alarms(Tecla);
+    	     break;
+
+
  /////////////////////////////////////////////////////////////////////////////
 
-        case Calibration:
+        case Receive_Data:
+    	     STATE_Receive_Data(Tecla);
+    	     break;
+
+        case Receive_Data_LINK:
+             STATE_Receive_Data_LINK(Tecla);
+             break;
+
+    	case Calibration:
     	     STATE_Calibration(Tecla);
     	     break;
 
@@ -463,23 +496,23 @@ void STATEMACHINE_ContextMenu(void)
     	     break;
 
     	case Set_Year:
-    	     STATE_Set_Year(Tecla);
+    	     STATE_Set_Year(Tecla, Tecla_Multi);
     	     break;
 
     	case Set_Month:
-    	     STATE_Set_Month(Tecla);
+    	     STATE_Set_Month(Tecla, Tecla_Multi);
     	     break;
 
     	case Set_Day:
-    	     STATE_Set_Day(Tecla);
+    	     STATE_Set_Day(Tecla, Tecla_Multi);
     	     break;
 
     	case Set_Hour:
-    	     STATE_Set_Hour(Tecla);
+    	     STATE_Set_Hour(Tecla, Tecla_Multi);
     	     break;
 
         case Set_Minute:
-    	     STATE_Set_Minute(Tecla);
+    	     STATE_Set_Minute(Tecla, Tecla_Multi);
     	     break;
 
     	case Calibrate_SO2:
@@ -487,10 +520,10 @@ void STATEMACHINE_ContextMenu(void)
     	     break;
 
     	case Calibrate_SO2_ZERO:
-    	     STATE_Calibrate_SO2_ZERO(Tecla);
+    	     STATE_Calibrate_SO2_ZERO(Tecla, Tecla_Multi);
     	     break;
     	 case Calibrate_SO2_SPAN:
-    	     STATE_Calibrate_SO2_SPAN(Tecla);
+    	     STATE_Calibrate_SO2_SPAN(Tecla, Tecla_Multi);
     	     break;
 
 
@@ -499,11 +532,11 @@ void STATEMACHINE_ContextMenu(void)
     	     break;
 
     	case Calibrate_CO_ZERO:
-    	     STATE_Calibrate_CO_ZERO(Tecla);
+    	     STATE_Calibrate_CO_ZERO(Tecla, Tecla_Multi);
     	     break;
 
     	case Calibrate_CO_SPAN:
-    	     STATE_Calibrate_CO_SPAN(Tecla);
+    	     STATE_Calibrate_CO_SPAN(Tecla, Tecla_Multi);
     	     break;
 
 
@@ -512,11 +545,11 @@ void STATEMACHINE_ContextMenu(void)
     	     break;
 
       	case Calibrate_EX_ZERO:
-    	     STATE_Calibrate_EX_ZERO(Tecla);
+    	     STATE_Calibrate_EX_ZERO(Tecla, Tecla_Multi);
     	     break;
 
     	case Calibrate_EX_SPAN:
-    	     STATE_Calibrate_EX_SPAN(Tecla);
+    	     STATE_Calibrate_EX_SPAN(Tecla, Tecla_Multi);
     	     break;
 
     	case Calibrate_Temp:
@@ -524,7 +557,7 @@ void STATEMACHINE_ContextMenu(void)
     	     break;
 
     	case Calibrate_Temp_SPAN:
-    	     STATE_Calibrate_Temp_SPAN(Tecla);
+    	     STATE_Calibrate_Temp_SPAN(Tecla, Tecla_Multi);
     	     break;
 
         case Set_Alarms_SO2:
@@ -532,11 +565,11 @@ void STATEMACHINE_ContextMenu(void)
     	     break;
 
         case Set_Alarm_SO2_LO:
-    	     STATE_Set_Alarm_SO2_LO(Tecla);
+    	     STATE_Set_Alarm_SO2_LO(Tecla, Tecla_Multi);
     	     break;
 
         case Set_Alarm_SO2_HI:
-    	     STATE_Set_Alarm_SO2_HI(Tecla);
+    	     STATE_Set_Alarm_SO2_HI(Tecla, Tecla_Multi);
     	     break;
 
     	case Set_Alarms_CO:
@@ -544,11 +577,11 @@ void STATEMACHINE_ContextMenu(void)
     	     break;
 
         case Set_Alarm_CO_LO:
-    	     STATE_Set_Alarm_CO_LO(Tecla);
+    	     STATE_Set_Alarm_CO_LO(Tecla, Tecla_Multi);
     	     break;
 
         case Set_Alarm_CO_HI:
-    	     STATE_Set_Alarm_CO_HI(Tecla);
+    	     STATE_Set_Alarm_CO_HI(Tecla, Tecla_Multi);
     	     break;
 
     	case Set_Alarms_EX:
@@ -556,11 +589,11 @@ void STATEMACHINE_ContextMenu(void)
     	     break;
 
         case Set_Alarm_EX_LO:
-    	     STATE_Set_Alarm_EX_LO(Tecla);
+    	     STATE_Set_Alarm_EX_LO(Tecla, Tecla_Multi);
     	     break;
 
         case Set_Alarm_EX_HI:
-    	     STATE_Set_Alarm_EX_HI(Tecla);
+    	     STATE_Set_Alarm_EX_HI(Tecla, Tecla_Multi);
     	     break;
 
     	default:
@@ -578,7 +611,8 @@ void STATE_MeasModeEN_AlarmsEN(uint8_t Tecla)      // ESTADO PRIMARIO LUEGO DEL 
 	if(Tecla == TECLA_EDIT)
 	{
 		AlarmsMode = DISABLED;
-		LCD_Display("MeasEN AlarmsDIS", 0 , 0);
+
+		LCD_Full_Display("Meas Mode:EN","Alarms:DIS");
 		STATE = MeasModeEN_AlarmsDIS;
 	}
 }
@@ -592,7 +626,8 @@ void STATE_MeasModeEN_AlarmsDIS(uint8_t Tecla)
 	if(Tecla == TECLA_EDIT)
 	{
 		MeasMode = DISABLED;
-		LCD_Display("MeasDISAlarmsDIS", 0 , 0);
+		LCD_Full_Display("Meas Mode:DIS","Alarms:DIS");
+
 		STATE = MeasModeDIS_AlarmsDIS_SMODE;
 	}
 }
@@ -606,19 +641,23 @@ void STATE_MeasModeDIS_AlarmsDIS_SMODE(uint8_t Tecla)
 	{
 		MeasMode = ENABLED;
 		AlarmsMode = ENABLED;
-		LCD_Display("MeasEN AlarmsEN ", 0 , 0);
+
+		LCD_Full_Display("Meas Mode:EN","Alarms:EN");
 		STATE = MeasModeEN_AlarmsEN;
 	}
 }
 void STATE_Show_DateTime(uint8_t Tecla)
 {
-	sprintf(Buffer_String," %02d/%02d/%d %02d:%02d ",Unit_Data.Data.Day, Unit_Data.Data.Month, Unit_Data.Data.Year, Unit_Data.Data.Hour, Unit_Data.Data.Minute);
-	LCD_Display(Buffer_String, 0 , 0);
+
+	sprintf(LCD_Buffer_Line1,"Date: %02d/%02d/%02d",Unit_Data.Data.Day, Unit_Data.Data.Month, Unit_Data.Data.Year, Unit_Data.Data.Hour, Unit_Data.Data.Minute);
+	sprintf(LCD_Buffer_Line2,"Time: %02d:%02d:%02d", Unit_Data.Data.Hour, Unit_Data.Data.Minute, Unit_Data.Data.Second);
+	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 
 	if(Tecla == TECLA_UP)
 	{
-		sprintf(Buffer_String,"    ID: %03d    ", Unit_Data.ID);
-		LCD_Display(Buffer_String, 0 , 0);
+		sprintf(LCD_Buffer_Line1,"SN: %d", Unit_Data.Serial_Number);
+		sprintf(LCD_Buffer_Line2,"ID: %03d", Unit_Data.ID);
+		LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 		STATE = Show_IDSN;
 	}
 }
@@ -626,7 +665,8 @@ void STATE_Show_IDSN(uint8_t Tecla)
 {
 	if(Tecla == TECLA_UP)
 	{
-		LCD_Display("Settings:       ", 0 , 0);
+		LCD_Full_Display("Settings:", " ");
+
 		STATE = Settings;
 	}
 }
@@ -635,13 +675,13 @@ void STATE_Show_SO2(uint8_t Tecla)
 
 	if( Data_Filtered_Corrected.SO2_Reading < 0 )   //Filtro de negativos para las lecturas en el LCD
 	{
-		sprintf(Buffer_String,"SO2: %.1f PPM", 0 * Data_Filtered_Corrected.SO2_Reading);
-		LCD_Display(Buffer_String, 0 , 0);
+		sprintf(LCD_Buffer_Line1,"SO2: %.1f PPM", 0 * Data_Filtered_Corrected.SO2_Reading);
+		LCD_Full_Display(LCD_Buffer_Line1, " ");
 	}
 	else
 	{
-		sprintf(Buffer_String,"SO2: %.1f PPM", Data_Filtered_Corrected.SO2_Reading);
-		LCD_Display(Buffer_String, 0 , 0);
+		sprintf(LCD_Buffer_Line1,"SO2: %.1f PPM", Data_Filtered_Corrected.SO2_Reading);
+		LCD_Full_Display(LCD_Buffer_Line1, " ");
 	}
 
 	if(Tecla == TECLA_UP)
@@ -653,13 +693,13 @@ void STATE_Show_CO(uint8_t Tecla)
 {
 	if( Data_Filtered_Corrected.CO_Reading < 0 )   //Filtro de negativos para las lecturas en el LCD
 	{
-		sprintf(Buffer_String,"CO: %.1f PPM", 0 * Data_Filtered_Corrected.CO_Reading);
-		LCD_Display(Buffer_String, 0 , 0);
+		sprintf(LCD_Buffer_Line1,"CO: %.1f PPM", 0 * Data_Filtered_Corrected.CO_Reading);
+		LCD_Full_Display(LCD_Buffer_Line1, " ");
 	}
 	else
 	{
-		sprintf(Buffer_String,"CO: %.1f PPM", Data_Filtered_Corrected.CO_Reading);
-		LCD_Display(Buffer_String, 0 , 0);
+		sprintf(LCD_Buffer_Line1,"CO: %.1f PPM", Data_Filtered_Corrected.CO_Reading);
+		LCD_Full_Display(LCD_Buffer_Line1, " ");
 	}
 
 	if(Tecla == TECLA_UP)
@@ -671,44 +711,76 @@ void STATE_Show_EX(uint8_t Tecla)
 {
 	if( Data_Filtered_Corrected.EX_Reading < 0 )   //Filtro de negativos para las lecturas en el LCD
 	{
-		sprintf(Buffer_String,"Ex: %.1f %%LEL", 0 * Data_Filtered_Corrected.EX_Reading);
-		LCD_Display(Buffer_String, 0 , 0);
+		sprintf(LCD_Buffer_Line1,"Ex: %.1f %%LEL", 0 * Data_Filtered_Corrected.EX_Reading);
+		LCD_Full_Display(LCD_Buffer_Line1, " ");
 	}
 	else
 	{
-		sprintf(Buffer_String,"Ex: %.1f %%LEL", Data_Filtered_Corrected.EX_Reading);
-		LCD_Display(Buffer_String, 0 , 0);
+		sprintf(LCD_Buffer_Line1,"Ex: %.1f %%LEL", Data_Filtered_Corrected.EX_Reading);
+		LCD_Full_Display(LCD_Buffer_Line1, " ");
 	}
-
 	if(Tecla == TECLA_UP)
 	{
-		if( ENABLED == MeasMode && ENABLED == AlarmsMode )
-			{
-				LCD_Display("MeasEN AlarmsEN ", 0 , 0);
-				STATE = MeasModeEN_AlarmsEN;
-			}
-		if( ENABLED == MeasMode && DISABLED == AlarmsMode )
-			{
-				LCD_Display("MeasEN AlarmsDIS", 0 , 0);
-				STATE = MeasModeEN_AlarmsDIS;
-			}
-		if( DISABLED == MeasMode && DISABLED == AlarmsMode )
-			{
-				LCD_Display("MeasDISAlarmsDIS", 0 , 0);
-				STATE = MeasModeDIS_AlarmsDIS_SMODE;
-			}
+		sprintf(LCD_Buffer_Line2,"LO:%01d  HI:%01d", Unit_Data.SO2_Config.LO_ALarm, Unit_Data.SO2_Config.HI_ALarm);
+		LCD_Full_Display("SO2 Alarms[PPM]", LCD_Buffer_Line2);
+		STATE = Show_SO2_Alarms;
 	}
+
 }
 void STATE_Show_Temp(uint8_t Tecla)
 {
-	sprintf(Buffer_String,"Temp: %.1f oC", Data_Filtered_Corrected.TEMP_Reading);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"Temp: %.1f oC", Data_Filtered_Corrected.TEMP_Reading);
+	LCD_Full_Display(LCD_Buffer_Line1," ");
 
 	if(Tecla == TECLA_UP)
 	{
 		STATE = Show_SO2;
 	}
 }
+
+void STATE_Show_SO2_Alarms(uint8_t Tecla)
+{
+	if(Tecla == TECLA_UP)
+	{
+		sprintf(LCD_Buffer_Line2,"LO:%02d  HI:%02d", Unit_Data.CO_Config.LO_ALarm, Unit_Data.CO_Config.HI_ALarm);
+		LCD_Full_Display("CO Alarms[PPM]", LCD_Buffer_Line2);
+		STATE = Show_CO_Alarms;
+	}
+}
+
+void STATE_Show_CO_Alarms(uint8_t Tecla)
+{
+	if(Tecla == TECLA_UP)
+	{
+		sprintf(LCD_Buffer_Line2,"LO:%02d  HI:%02d", Unit_Data.EX_Config.LO_ALarm, Unit_Data.EX_Config.HI_ALarm);
+		LCD_Full_Display("Ex Alarms[%LEL]", LCD_Buffer_Line2);
+		STATE = Show_EX_Alarms;
+	}
+}
+
+void STATE_Show_EX_Alarms(uint8_t Tecla)
+{
+
+	if(Tecla == TECLA_UP)
+	{
+		if( ENABLED == MeasMode && ENABLED == AlarmsMode )
+			{
+			LCD_Full_Display("Meas Mode:EN","Alarms:EN");
+				STATE = MeasModeEN_AlarmsEN;
+			}
+		if( ENABLED == MeasMode && DISABLED == AlarmsMode )
+			{
+			LCD_Full_Display("Meas Mode:EN","Alarms:DIS");
+				STATE = MeasModeEN_AlarmsDIS;
+			}
+		if( DISABLED == MeasMode && DISABLED == AlarmsMode )
+			{
+			LCD_Full_Display("Meas Mode:DIS","Alarms:DIS");
+				STATE = MeasModeDIS_AlarmsDIS_SMODE;
+			}
+	}
+}
+
 
 void STATE_Settings(uint8_t Tecla)
 {
@@ -718,23 +790,71 @@ void STATE_Settings(uint8_t Tecla)
 	}
 	if(Tecla == TECLA_EDIT)
 	{
-		LCD_Display("Calibration:    ", 0 , 0);
-		STATE = Calibration;
+		 if(DISABLED == MeasMode && DISABLED == AlarmsMode)  //Condicion previa para entrar en Calibración
+		{
+			 LCD_Full_Display("Setup unit", "from PC:");
+			 STATE = Receive_Data;
+		}
+		 if(ENABLED == MeasMode && DISABLED == AlarmsMode)   //Condicion previa para entrar en Config Alarmas
+		 {
+			 LCD_Full_Display("Alarms Settings:", " ");
+			 STATE = AlarmsSettings;
+		 }
+		 if(ENABLED == MeasMode && ENABLED == AlarmsMode)	//Lo único que se admite en condición MeasMode:EN y AlarmsMode:EN
+		 {
+			 LCD_Full_Display("Date & Time Set:"," ");
+			 STATE = Set_DateTime;
+		 }
 	}
 }
 
+void STATE_Receive_Data(uint8_t Tecla)                          //Receive Data:
+{
+	if(Tecla == TECLA_UP)
+	{
+		LCD_Full_Display("Calibration:", " ");
+		STATE = Calibration;
+	}
+	if(Tecla == TECLA_EDIT)
+	{
+		ReceiveDataMode = ENABLED;
+		ExternalClock = DISABLED;
+		LCD_Full_Display("Waiting Data...", "UP to Cancel");
+		STATE = Receive_Data_LINK;
+	}
+}
+
+
+void STATE_Receive_Data_LINK(uint8_t Tecla)                     //Receive Data:
+{
+	if(0 == dataParsed)
+		Rx_TLVParser();
+
+	if(1 == dataParsed)
+	{
+		LCD_Full_Display("Config Success!", "UP to Exit");
+	}
+
+	if(Tecla == TECLA_UP)
+	{
+		 dataParsed = 0;
+		 ReceiveDataMode = DISABLED;
+		 ExternalClock = ENABLED;
+		 LCD_Full_Display("Send Config", "from PC:");
+		 STATE = Receive_Data;
+	}
+}
 
 void STATE_Calibration(uint8_t Tecla)                          //Calibration:
 {
 	if(Tecla == TECLA_UP)
 	{
-		LCD_Display("Alarms Settings:", 0 , 0);
+		LCD_Full_Display("Alarms Settings:", " ");
 		STATE = AlarmsSettings;
 	}
 	if(Tecla == TECLA_EDIT)
 	{
-		ServiceMode = ENABLED;                //HABILITO EL MODO SERVICE (SIN TRANSMISIÓN NI ALARMAS)
-		LCD_Display("Calibrate Temp:", 0 , 0);
+		LCD_Full_Display("Calibrate Temp:", " ");
 		STATE = Calibrate_Temp;
 	}
 }
@@ -743,7 +863,7 @@ void STATE_Calibrate_Temp(uint8_t Tecla)
 {
 	if(Tecla == TECLA_UP)
 	{
-		LCD_Display("Calibrate SO2:", 0 , 0);
+		LCD_Full_Display("Calibrate SO2:", " ");
 		STATE = Calibrate_SO2;
 	}
 	if(Tecla == TECLA_EDIT)
@@ -751,12 +871,14 @@ void STATE_Calibrate_Temp(uint8_t Tecla)
 		STATE = Calibrate_Temp_SPAN;
 	}
 }
-void STATE_Calibrate_Temp_SPAN(uint8_t Tecla)
-{
-	sprintf(Buffer_String,"Tmp:%.1f fC:%.2f", Data_Filtered_Corrected.TEMP_Reading , Unit_Data.TEMP_Config.SPAN_Factor);
-	LCD_Display(Buffer_String, 0 , 0);
 
-	if(Tecla == TECLA_UP)
+void STATE_Calibrate_Temp_SPAN(uint8_t Tecla, uint8_t Tecla_Multi)
+{
+	sprintf(LCD_Buffer_Line1,"Temp: %.1f oC", Data_Filtered_Corrected.TEMP_Reading);
+	sprintf(LCD_Buffer_Line2,"CalFc: %.1f", Unit_Data.TEMP_Config.SPAN_Factor);
+	LCD_Full_Display(LCD_Buffer_Line1,LCD_Buffer_Line2);
+
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data.TEMP_Config.SPAN_Factor < 1.99) Unit_Data.TEMP_Config.SPAN_Factor += 0.005;  //Incrementa el dato en variable provisoria en pasos de 0,05
 		else Unit_Data.TEMP_Config.SPAN_Factor = 0;
@@ -765,18 +887,15 @@ void STATE_Calibrate_Temp_SPAN(uint8_t Tecla)
 	{
 		Unit_Data_NEW.TEMP_Config.SPAN_Factor = Unit_Data.TEMP_Config.SPAN_Factor; //Refresca la estructura NEW con el nuevo valor del factor
 
-		ServiceMode = DISABLED;                //VUELVE DEL MODO SERVICE
-
-		LCD_Display("Calibration:    ", 0 , 0);
+		LCD_Full_Display("Calibration:", " ");
 		STATE = Calibration;
 	}
 	if(Tecla == TECLA_NEXT)    // Invalida el dato, devolviendo el valor anterior a la variable provisoria
 	{
 		Unit_Data.TEMP_Config.SPAN_Factor = Unit_Data_NEW.TEMP_Config.SPAN_Factor;  //En este caso uso NEW para recuperar el anterior factor
 
-		ServiceMode = DISABLED;                //VUELVE DEL MODO SERVICE
 
-		LCD_Display("Calibration:    ", 0 , 0);
+		LCD_Full_Display("Calibration:", " ");
 		STATE = Calibration;
 	}
 }
@@ -785,7 +904,7 @@ void STATE_Calibrate_SO2(uint8_t Tecla)
 {
 	if(Tecla == TECLA_UP)
 	{
-		LCD_Display("Calibrate CO:", 0 , 0);
+		LCD_Full_Display("Calibrate CO:"," ");
 		STATE = Calibrate_CO;
 	}
 	if(Tecla == TECLA_EDIT)
@@ -793,12 +912,13 @@ void STATE_Calibrate_SO2(uint8_t Tecla)
 		STATE = Calibrate_SO2_ZERO;
 	}
 }
-void STATE_Calibrate_SO2_ZERO(uint8_t Tecla)
+void STATE_Calibrate_SO2_ZERO(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"SO2:%.1f fZ:%.2f", Data_Filtered_Corrected.SO2_Reading , Unit_Data.SO2_Config.ZERO_Factor);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"SO2: %.1f PPM", Data_Filtered_Corrected.SO2_Reading);
+	sprintf(LCD_Buffer_Line2,"ZOffset: %.2f", Unit_Data.SO2_Config.ZERO_Factor);
+	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 
-	if(Tecla == TECLA_UP)
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data.SO2_Config.ZERO_Factor < 2.99) Unit_Data.SO2_Config.ZERO_Factor += 0.05;  //Incrementa el dato en variable provisoria en pasos de 0,05
 		else Unit_Data.SO2_Config.ZERO_Factor = -2.99;
@@ -814,12 +934,14 @@ void STATE_Calibrate_SO2_ZERO(uint8_t Tecla)
 		STATE = Calibrate_SO2_SPAN;
 	}
 }
-void STATE_Calibrate_SO2_SPAN(uint8_t Tecla)
+void STATE_Calibrate_SO2_SPAN(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"SO2:%.1f fC:%.2f", Data_Filtered_Corrected.SO2_Reading , Unit_Data.SO2_Config.SPAN_Factor);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"SO2: %.1f PPM", Data_Filtered_Corrected.SO2_Reading);
+	sprintf(LCD_Buffer_Line2,"CalFc: %.2f", Unit_Data.SO2_Config.SPAN_Factor);
+	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 
-	if(Tecla == TECLA_UP)
+
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data.SO2_Config.SPAN_Factor < 2.99) Unit_Data.SO2_Config.SPAN_Factor += 0.05;  //Incrementa el dato en variable provisoria en pasos de 0,05
 		else Unit_Data.SO2_Config.SPAN_Factor = 0;
@@ -828,18 +950,16 @@ void STATE_Calibrate_SO2_SPAN(uint8_t Tecla)
 	{
 		Unit_Data_NEW.SO2_Config.SPAN_Factor = Unit_Data.SO2_Config.SPAN_Factor; //Refresca la estructura NEW con el nuevo valor del factor
 
-		ServiceMode = DISABLED;                //VUELVE DEL MODO SERVICE
 
-		LCD_Display("Calibration:    ", 0 , 0);
+		LCD_Full_Display("Calibration:", " ");
 		STATE = Calibration;
 	}
 	if(Tecla == TECLA_NEXT)    // Invalida el dato, devolviendo el valor anterior a la variable provisoria
 	{
 		Unit_Data.SO2_Config.SPAN_Factor = Unit_Data_NEW.SO2_Config.SPAN_Factor;  //En este caso uso NEW para recuperar el anterior factor
 
-		ServiceMode = DISABLED;                //VUELVE DEL MODO SERVICE
 
-		LCD_Display("Calibration:    ", 0 , 0);
+		LCD_Full_Display("Calibration:", " ");
 		STATE = Calibration;
 	}
 }
@@ -848,7 +968,7 @@ void STATE_Calibrate_CO(uint8_t Tecla)
 {
 	if(Tecla == TECLA_UP)
 	{
-		LCD_Display("Calibrate EX:", 0 , 0);
+		LCD_Full_Display("Calibrate Ex:", " ");
 		STATE = Calibrate_EX;
 	}
 	if(Tecla == TECLA_EDIT)
@@ -856,12 +976,13 @@ void STATE_Calibrate_CO(uint8_t Tecla)
 		STATE = Calibrate_CO_ZERO;
 	}
 }
-void STATE_Calibrate_CO_ZERO(uint8_t Tecla)
+void STATE_Calibrate_CO_ZERO(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"CO:%.1f fZ:%.2f", Data_Filtered_Corrected.CO_Reading , Unit_Data.CO_Config.ZERO_Factor);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"CO: %.1f PPM", Data_Filtered_Corrected.CO_Reading);
+	sprintf(LCD_Buffer_Line2,"ZOffset: %.2f", Unit_Data.CO_Config.ZERO_Factor);
+	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 
-	if(Tecla == TECLA_UP)
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data.CO_Config.ZERO_Factor < 3.99) Unit_Data.CO_Config.ZERO_Factor += 0.05;  //Incrementa el dato en variable provisoria en pasos de 0,05
 		else Unit_Data.CO_Config.ZERO_Factor = -3.99;
@@ -877,12 +998,13 @@ void STATE_Calibrate_CO_ZERO(uint8_t Tecla)
 		STATE = Calibrate_CO_SPAN;
 	}
 }
-void STATE_Calibrate_CO_SPAN(uint8_t Tecla)
+void STATE_Calibrate_CO_SPAN(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"CO:%.1f fC:%.2f", Data_Filtered_Corrected.CO_Reading , Unit_Data.CO_Config.SPAN_Factor);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"CO: %.1f PPM", Data_Filtered_Corrected.CO_Reading);
+	sprintf(LCD_Buffer_Line2,"CalFc: %.2f", Unit_Data.CO_Config.SPAN_Factor);
+	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 
-	if(Tecla == TECLA_UP)
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data.CO_Config.SPAN_Factor < 3.99) Unit_Data.CO_Config.SPAN_Factor += 0.01;  //Incrementa el dato en variable provisoria en pasos de 0,05
 		else Unit_Data.CO_Config.SPAN_Factor = 0;
@@ -891,18 +1013,14 @@ void STATE_Calibrate_CO_SPAN(uint8_t Tecla)
 	{
 		Unit_Data_NEW.CO_Config.SPAN_Factor = Unit_Data.CO_Config.SPAN_Factor; //Refresca la estructura NEW con el nuevo valor del factor
 
-		ServiceMode = DISABLED;                //VUELVE DEL MODO SERVICE
-
-		LCD_Display("Calibration:    ", 0 , 0);
+		LCD_Full_Display("Calibration:"," ");
 		STATE = Calibration;
 	}
 	if(Tecla == TECLA_NEXT)    // Invalida el dato, devolviendo el valor anterior a la variable provisoria
 	{
 		Unit_Data.CO_Config.SPAN_Factor = Unit_Data_NEW.CO_Config.SPAN_Factor;  //En este caso uso NEW para recuperar el anterior factor
 
-		ServiceMode = DISABLED;                //VUELVE DEL MODO SERVICE
-
-		LCD_Display("Calibration:    ", 0 , 0);
+		LCD_Full_Display("Calibration:"," ");
 		STATE = Calibration;
 	}
 }
@@ -911,8 +1029,7 @@ void STATE_Calibrate_EX(uint8_t Tecla)
 {
 	if(Tecla == TECLA_UP)
 	{
-		ServiceMode = DISABLED;                //VUELVE DEL MODO SERVICE
-		LCD_Display("Calibration:", 0 , 0);
+		LCD_Full_Display("Calibration:"," ");
 		STATE = Calibration;
 	}
 	if(Tecla == TECLA_EDIT)
@@ -920,12 +1037,13 @@ void STATE_Calibrate_EX(uint8_t Tecla)
 		STATE = Calibrate_EX_ZERO;
 	}
 }
-void STATE_Calibrate_EX_ZERO(uint8_t Tecla)
+void STATE_Calibrate_EX_ZERO(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"EX:%.1f fZ:%.2f", Data_Filtered_Corrected.EX_Reading , Unit_Data.EX_Config.ZERO_Factor);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"EX: %.1f %%LEL", Data_Filtered_Corrected.EX_Reading);
+	sprintf(LCD_Buffer_Line2,"ZOffset: %.2f", Unit_Data.EX_Config.ZERO_Factor);
+	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 
-	if(Tecla == TECLA_UP)
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data.EX_Config.ZERO_Factor < 2.99) Unit_Data.EX_Config.ZERO_Factor += 0.05;  //Incrementa el dato en variable provisoria en pasos de 0,05
 		else Unit_Data.EX_Config.ZERO_Factor = -2.99;
@@ -941,12 +1059,13 @@ void STATE_Calibrate_EX_ZERO(uint8_t Tecla)
 		STATE = Calibrate_EX_SPAN;
 	}
 }
-void STATE_Calibrate_EX_SPAN(uint8_t Tecla)
+void STATE_Calibrate_EX_SPAN(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"EX:%.1f fC:%.2f", Data_Filtered_Corrected.EX_Reading , Unit_Data.EX_Config.SPAN_Factor);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"EX: %.1f %%LEL", Data_Filtered_Corrected.EX_Reading);
+	sprintf(LCD_Buffer_Line2,"CalFc: %.2f", Unit_Data.EX_Config.SPAN_Factor);
+	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 
-	if(Tecla == TECLA_UP)
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data.EX_Config.SPAN_Factor < 2.99) Unit_Data.EX_Config.SPAN_Factor += 0.01;  //Incrementa el dato en variable provisoria en pasos de 0,05
 		else Unit_Data.EX_Config.SPAN_Factor = 0;
@@ -955,18 +1074,16 @@ void STATE_Calibrate_EX_SPAN(uint8_t Tecla)
 	{
 		Unit_Data_NEW.EX_Config.SPAN_Factor = Unit_Data.EX_Config.SPAN_Factor; //Refresca la estructura NEW con el nuevo valor del factor
 
-		ServiceMode = DISABLED;                //VUELVE DEL MODO SERVICE
 
-		LCD_Display("Calibration:    ", 0 , 0);
+		LCD_Full_Display("Calibration:"," ");
 		STATE = Calibration;
 	}
 	if(Tecla == TECLA_NEXT)    // Invalida el dato, devolviendo el valor anterior a la variable provisoria
 	{
 		Unit_Data.EX_Config.SPAN_Factor = Unit_Data_NEW.EX_Config.SPAN_Factor;  //En este caso uso NEW para recuperar el anterior factor
 
-		ServiceMode = DISABLED;                //VUELVE DEL MODO SERVICE
 
-		LCD_Display("Calibration:    ", 0 , 0);
+		LCD_Full_Display("Calibration:"," ");
 		STATE = Calibration;
 	}
 }
@@ -975,12 +1092,13 @@ void STATE_AlarmsSettings(uint8_t Tecla)                     //Alarms Settings:
 {
 	if(Tecla == TECLA_UP)
 	{
-		LCD_Display("Date & Time Set:", 0 , 0);
+		LCD_Full_Display("Date & Time Set:"," ");
 		STATE = Set_DateTime;
 	}
 	if(Tecla == TECLA_EDIT)
 	{
-		LCD_Display("Set Alarms SO2:", 0 , 0);
+		mem = IIC_Read_Driver(0xA0, 0);  //Lee el byte de memoria y lo guarda en variable global mem
+		LCD_Full_Display("Set Alarms SO2:"," ");
 		STATE = Set_Alarms_SO2;
 	}
 }
@@ -993,16 +1111,17 @@ void STATE_Set_Alarms_SO2(uint8_t Tecla)
 	}
 	if(Tecla == TECLA_UP)
 	{
-		LCD_Display("Set Alarms CO:", 0 , 0);
+		LCD_Full_Display("Set Alarms CO:"," ");
 		STATE = Set_Alarms_CO;
 	}
 }
-void STATE_Set_Alarm_SO2_LO(uint8_t Tecla)
+void STATE_Set_Alarm_SO2_LO(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"SO2_LO:%01d New:%01d", Unit_Data.SO2_Config.LO_ALarm, Unit_Data_NEW.SO2_Config.LO_ALarm);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"SO2 LO Alarm: %01d", mem);
+	sprintf(LCD_Buffer_Line2,"Set new: %01d", Unit_Data_NEW.SO2_Config.LO_ALarm);
+	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 
-	if(Tecla == TECLA_UP)
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data_NEW.SO2_Config.LO_ALarm < 9) Unit_Data_NEW.SO2_Config.LO_ALarm ++;  //Incrementa el dato en variable provisoria
 		else Unit_Data_NEW.SO2_Config.LO_ALarm = 1;
@@ -1010,6 +1129,9 @@ void STATE_Set_Alarm_SO2_LO(uint8_t Tecla)
 	if(Tecla == TECLA_EDIT)    // Valida el dato guardándolo en la variable permanente
 	{
 		Unit_Data.SO2_Config.LO_ALarm = Unit_Data_NEW.SO2_Config.LO_ALarm;
+
+		IIC_Write_Driver(0xA0, 0, Unit_Data_NEW.SO2_Config.LO_ALarm);  //Prueba de grabado de 1 byte en memoria EEPROM
+
 		STATE = Set_Alarm_SO2_HI;
 	}
 	if(Tecla == TECLA_NEXT)    // Invalida el dato, devolviendo el valor anterior a la variable provisoria
@@ -1018,12 +1140,13 @@ void STATE_Set_Alarm_SO2_LO(uint8_t Tecla)
 		STATE = Set_Alarm_SO2_HI;
 	}
 }
-void STATE_Set_Alarm_SO2_HI(uint8_t Tecla)
+void STATE_Set_Alarm_SO2_HI(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"SO2_HI:%01d New:%01d", Unit_Data.SO2_Config.HI_ALarm, Unit_Data_NEW.SO2_Config.HI_ALarm);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"SO2 HI Alarm: %01d", Unit_Data.SO2_Config.HI_ALarm);
+	sprintf(LCD_Buffer_Line2,"Set new: %01d", Unit_Data_NEW.SO2_Config.HI_ALarm);
+	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 
-	if(Tecla == TECLA_UP)
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data_NEW.SO2_Config.HI_ALarm < 9) Unit_Data_NEW.SO2_Config.HI_ALarm ++;  //Incrementa el dato en variable provisoria
 		else Unit_Data_NEW.SO2_Config.HI_ALarm = 1;
@@ -1031,13 +1154,13 @@ void STATE_Set_Alarm_SO2_HI(uint8_t Tecla)
 	if(Tecla == TECLA_EDIT)    // Valida el dato guardándolo en la variable permanente
 	{
 		Unit_Data.SO2_Config.HI_ALarm = Unit_Data_NEW.SO2_Config.HI_ALarm;
-		LCD_Display("Set Alarms SO2:", 0 , 0);
+		LCD_Full_Display("Set Alarms SO2:"," ");
 		STATE = Set_Alarms_SO2;
 	}
 	if(Tecla == TECLA_NEXT)    // Invalida el dato, devolviendo el valor anterior a la variable provisoria
 	{
 		Unit_Data_NEW.SO2_Config.HI_ALarm = Unit_Data.SO2_Config.HI_ALarm;
-		LCD_Display("Set Alarms SO2:", 0 , 0);
+		LCD_Full_Display("Set Alarms SO2:"," ");
 		STATE = Set_Alarms_SO2;
 	}
 }
@@ -1046,7 +1169,7 @@ void STATE_Set_Alarms_CO(uint8_t Tecla)
 {
 	if(Tecla == TECLA_UP)
 	{
-		LCD_Display("Set Alarms EX:", 0 , 0);
+		LCD_Full_Display("Set Alarms EX:"," ");
 		STATE = Set_Alarms_EX;
 	}
 	if(Tecla == TECLA_EDIT)
@@ -1054,12 +1177,13 @@ void STATE_Set_Alarms_CO(uint8_t Tecla)
 		STATE = Set_Alarm_CO_LO;
 	}
 }
-void STATE_Set_Alarm_CO_LO(uint8_t Tecla)
+void STATE_Set_Alarm_CO_LO(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"CO_LO:%02d New:%02d", Unit_Data.CO_Config.LO_ALarm, Unit_Data_NEW.CO_Config.LO_ALarm);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"CO LO Alarm: %02d", Unit_Data.CO_Config.LO_ALarm);
+	sprintf(LCD_Buffer_Line2,"Set new: %02d", Unit_Data_NEW.CO_Config.LO_ALarm);
+	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 
-	if(Tecla == TECLA_UP)
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data_NEW.CO_Config.LO_ALarm < 99) Unit_Data_NEW.CO_Config.LO_ALarm ++;  //Incrementa el dato en variable provisoria
 		else Unit_Data_NEW.CO_Config.LO_ALarm = 1;
@@ -1075,12 +1199,13 @@ void STATE_Set_Alarm_CO_LO(uint8_t Tecla)
 		STATE = Set_Alarm_CO_HI;
 	}
 }
-void STATE_Set_Alarm_CO_HI(uint8_t Tecla)
+void STATE_Set_Alarm_CO_HI(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"CO_HI:%02d New:%02d", Unit_Data.CO_Config.HI_ALarm, Unit_Data_NEW.CO_Config.HI_ALarm);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"CO HI Alarm: %02d", Unit_Data.CO_Config.HI_ALarm);
+	sprintf(LCD_Buffer_Line2,"Set new: %02d", Unit_Data_NEW.CO_Config.HI_ALarm);
+	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 
-	if(Tecla == TECLA_UP)
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data_NEW.CO_Config.HI_ALarm < 99) Unit_Data_NEW.CO_Config.HI_ALarm ++;  //Incrementa el dato en variable provisoria
 		else Unit_Data_NEW.CO_Config.HI_ALarm = 1;
@@ -1088,13 +1213,13 @@ void STATE_Set_Alarm_CO_HI(uint8_t Tecla)
 	if(Tecla == TECLA_EDIT)    // Valida el dato guardándolo en la variable permanente
 	{
 		Unit_Data.CO_Config.HI_ALarm = Unit_Data_NEW.CO_Config.HI_ALarm;
-		LCD_Display("Set Alarms CO:", 0 , 0);
+		LCD_Full_Display("Set Alarms CO:"," ");
 		STATE = Set_Alarms_CO;
 	}
 	if(Tecla == TECLA_NEXT)    // Invalida el dato, devolviendo el valor anterior a la variable provisoria
 	{
 		Unit_Data_NEW.CO_Config.HI_ALarm = Unit_Data.CO_Config.HI_ALarm;
-		LCD_Display("Set Alarms CO:", 0 , 0);
+		LCD_Full_Display("Set Alarms CO:"," ");
 		STATE = Set_Alarms_CO;
 	}
 }
@@ -1103,7 +1228,7 @@ void STATE_Set_Alarms_EX(uint8_t Tecla)
 {
 	if(Tecla == TECLA_UP)
 	{
-		LCD_Display("Alarms Settings:", 0 , 0);
+		LCD_Full_Display("Alarms Settings:", " ");
 		STATE = AlarmsSettings;
 	}
 	if(Tecla == TECLA_EDIT)
@@ -1111,12 +1236,14 @@ void STATE_Set_Alarms_EX(uint8_t Tecla)
 		STATE = Set_Alarm_EX_LO;
 	}
 }
-void STATE_Set_Alarm_EX_LO(uint8_t Tecla)
+void STATE_Set_Alarm_EX_LO(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"EX_LO:%02d New:%02d", Unit_Data.EX_Config.LO_ALarm, Unit_Data_NEW.EX_Config.LO_ALarm);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"EX LO Alarm: %02d", Unit_Data.EX_Config.LO_ALarm);
+	sprintf(LCD_Buffer_Line2,"Set new: %02d", Unit_Data_NEW.EX_Config.LO_ALarm);
+	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 
-	if(Tecla == TECLA_UP)
+
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data_NEW.EX_Config.LO_ALarm < 99) Unit_Data_NEW.EX_Config.LO_ALarm ++;  //Incrementa el dato en variable provisoria
 		else Unit_Data_NEW.EX_Config.LO_ALarm = 1;
@@ -1132,12 +1259,13 @@ void STATE_Set_Alarm_EX_LO(uint8_t Tecla)
 		STATE = Set_Alarm_EX_HI;
 	}
 }
-void STATE_Set_Alarm_EX_HI(uint8_t Tecla)
+void STATE_Set_Alarm_EX_HI(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"EX_HI:%02d New:%02d", Unit_Data.EX_Config.HI_ALarm, Unit_Data_NEW.EX_Config.HI_ALarm);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"EX HI Alarm: %02d", Unit_Data.EX_Config.HI_ALarm);
+	sprintf(LCD_Buffer_Line2,"Set new: %02d", Unit_Data_NEW.EX_Config.HI_ALarm);
+	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 
-	if(Tecla == TECLA_UP)
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data_NEW.EX_Config.HI_ALarm < 99) Unit_Data_NEW.EX_Config.HI_ALarm ++;  //Incrementa el dato en variable provisoria
 		else Unit_Data_NEW.EX_Config.HI_ALarm = 1;
@@ -1145,13 +1273,13 @@ void STATE_Set_Alarm_EX_HI(uint8_t Tecla)
 	if(Tecla == TECLA_EDIT)    // Valida el dato guardándolo en la variable permanente
 	{
 		Unit_Data.EX_Config.HI_ALarm = Unit_Data_NEW.EX_Config.HI_ALarm;
-		LCD_Display("Set Alarms EX:", 0 , 0);
+		LCD_Full_Display("Set Alarms EX:", " ");
 		STATE = Set_Alarms_EX;
 	}
 	if(Tecla == TECLA_NEXT)    // Invalida el dato, devolviendo el valor anterior a la variable provisoria
 	{
 		Unit_Data_NEW.EX_Config.HI_ALarm = Unit_Data.EX_Config.HI_ALarm;
-		LCD_Display("Set Alarms EX:", 0 , 0);
+		LCD_Full_Display("Set Alarms EX:", " ");
 		STATE = Set_Alarms_EX;
 	}
 }
@@ -1167,20 +1295,17 @@ void STATE_ID_Settings(uint8_t Tecla)                    //ID Settings:
 	{
 		if( ENABLED == MeasMode && ENABLED == AlarmsMode )
 			{
-				EXTERNALMODULES_Status_Leds(ONLINE);
-				LCD_Display("MeasEN AlarmsEN ", 0 , 0);
+			LCD_Full_Display("Meas Mode:EN","Alarms:EN");
 				STATE = MeasModeEN_AlarmsEN;
 			}
 		if( ENABLED == MeasMode && DISABLED == AlarmsMode )
 			{
-				EXTERNALMODULES_Status_Leds(ONLINE);
-				LCD_Display("MeasEN AlarmsDIS", 0 , 0);
+			LCD_Full_Display("Meas Mode:EN","Alarms:DIS");
 				STATE = MeasModeEN_AlarmsDIS;
 			}
 		if( DISABLED == MeasMode && DISABLED == AlarmsMode )
 			{
-				EXTERNALMODULES_Status_Leds(OFFLINE);
-				LCD_Display("MeasDISAlarmsDIS", 0 , 0);
+			LCD_Full_Display("Meas Mode:DIS","Alarms:DIS");
 				STATE = MeasModeDIS_AlarmsDIS_SMODE;
 			}
 	}
@@ -1188,22 +1313,23 @@ void STATE_ID_Settings(uint8_t Tecla)                    //ID Settings:
 
 void STATE_Set_ID(uint8_t Tecla)
 {
-	sprintf(Buffer_String,"Set ID: %03d", Unit_Data_NEW.ID);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"ID: %03d", Unit_Data.ID);
+	sprintf(LCD_Buffer_Line2,"Set new: %03d", Unit_Data_NEW.ID);
+	LCD_Full_Display(LCD_Buffer_Line1,LCD_Buffer_Line2);
 
 	if(Tecla == TECLA_UP) { Unit_Data_NEW.ID ++; }  //Incrementa el dato en variable provisoria
 
 	if(Tecla == TECLA_EDIT)						// Valida el dato guardándolo en la variable permanente
 	{
 		Unit_Data.ID = Unit_Data_NEW.ID;
-		LCD_Display("ID Settings:    ", 0 , 0);
+		LCD_Full_Display("ID Settings:"," ");
 		STATE = ID_Settings;
 	}
 
 	if(Tecla == TECLA_NEXT)		// Invalida el dato, devolviendo el valor anterior a la variable provisoria
 	{
 		Unit_Data_NEW.ID = Unit_Data.ID;
-		LCD_Display("ID Settings:    ", 0 , 0);
+		LCD_Full_Display("ID Settings:"," ");
 		STATE = ID_Settings;
 	}
 
@@ -1213,21 +1339,23 @@ void STATE_Set_DateTime(uint8_t Tecla)                   //Date & Time Set:
 {
 	if(Tecla == TECLA_UP)
 	{
-		LCD_Display("ID Settings:    ", 0 , 0);
+		LCD_Full_Display("ID Settings:"," ");
 		STATE = ID_Settings;
 	}
 	if(Tecla == TECLA_EDIT)
 	{
+		ExternalClock = DISABLED;    //Deshabilito el reloj externo para poder configurarlo
+
 		STATE = Set_Year;
 	}
 }
 
-void STATE_Set_Year(uint8_t Tecla)
+void STATE_Set_Year(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"Set year: %02d", Unit_Data_NEW.Data.Year);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"Date: %02d/%02d/%d",Unit_Data.Data.Day, Unit_Data.Data.Month, Unit_Data_NEW.Data.Year);
+	LCD_Full_Display(LCD_Buffer_Line1," ");
 
-	if(Tecla == TECLA_UP)
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data_NEW.Data.Year < 99) Unit_Data_NEW.Data.Year ++;
 		else Unit_Data_NEW.Data.Year = 0;
@@ -1244,12 +1372,12 @@ void STATE_Set_Year(uint8_t Tecla)
 		STATE = Set_Month;
 	}
 }
-void STATE_Set_Month(uint8_t Tecla)
+void STATE_Set_Month(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"Set month: %02d", Unit_Data_NEW.Data.Month);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"Date: %02d/%02d/%d",Unit_Data.Data.Day, Unit_Data_NEW.Data.Month, Unit_Data.Data.Year);
+	LCD_Full_Display(LCD_Buffer_Line1," ");
 
-	if(Tecla == TECLA_UP )       //Incrementa el dato en variable provisoria
+	if(Tecla_Multi == TECLA_UP )       //Incrementa el dato en variable provisoria
 	{
 		if(Unit_Data_NEW.Data.Month < 12) Unit_Data_NEW.Data.Month ++;
 		else Unit_Data_NEW.Data.Month = 1;
@@ -1266,14 +1394,14 @@ void STATE_Set_Month(uint8_t Tecla)
 		STATE = Set_Day;
 	}
 }
-void STATE_Set_Day(uint8_t Tecla)
+void STATE_Set_Day(uint8_t Tecla, uint8_t Tecla_Multi)
 {
 	uint32_t Leap_Year_Calc;    //Uso para calcular año bisiesto
 
-	sprintf(Buffer_String,"Set day: %02d",Unit_Data_NEW.Data.Day);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line1,"Date: %02d/%02d/%d",Unit_Data_NEW.Data.Day, Unit_Data.Data.Month, Unit_Data.Data.Year);
+	LCD_Full_Display(LCD_Buffer_Line1," ");
 
-	if(Tecla == TECLA_UP )       //Incrementa el dato en variable provisoria
+	if(Tecla_Multi == TECLA_UP )       //Incrementa el dato en variable provisoria
 	{
 		if((Unit_Data_NEW.Data.Month % 2) == 0)
 		{
@@ -1367,12 +1495,12 @@ void STATE_Set_Day(uint8_t Tecla)
 		STATE = Set_Hour;
 	}
 }
-void STATE_Set_Hour(uint8_t Tecla)
+void STATE_Set_Hour(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"Set hour: %02d", Unit_Data_NEW.Data.Hour);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line2,"Time: %02d:%02d ", Unit_Data_NEW.Data.Hour, Unit_Data.Data.Minute);
+	LCD_Full_Display(" ", LCD_Buffer_Line2);
 
-	if(Tecla == TECLA_UP)
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data_NEW.Data.Hour < 23) Unit_Data_NEW.Data.Hour ++;  //Incrementa el dato en variable provisoria
 		else Unit_Data_NEW.Data.Hour = 0;
@@ -1389,12 +1517,12 @@ void STATE_Set_Hour(uint8_t Tecla)
 		STATE = Set_Minute;
 	}
 }
-void STATE_Set_Minute(uint8_t Tecla)
+void STATE_Set_Minute(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(Buffer_String,"Set minute: %02d", Unit_Data_NEW.Data.Minute);
-	LCD_Display(Buffer_String, 0 , 0);
+	sprintf(LCD_Buffer_Line2,"Time: %02d:%02d ", Unit_Data.Data.Hour, Unit_Data_NEW.Data.Minute);
+	LCD_Full_Display(" ", LCD_Buffer_Line2);
 
-	if(Tecla == TECLA_UP)
+	if(Tecla_Multi == TECLA_UP)
 	{
 		if(Unit_Data_NEW.Data.Minute < 59) Unit_Data_NEW.Data.Minute ++;  //Incrementa el dato en variable provisoria
 		else Unit_Data_NEW.Data.Minute = 0;
@@ -1403,13 +1531,19 @@ void STATE_Set_Minute(uint8_t Tecla)
 	if(Tecla == TECLA_EDIT)						// Valida el dato guardándolo en la variable permanente
 	{
 		Unit_Data.Data.Minute = Unit_Data_NEW.Data.Minute;
-		LCD_Display("Date & Time Set:", 0 , 0);
+
+		ExternalClock = ENABLED;   //Vuelvo a habilitar el reloj externo
+
+		LCD_Full_Display("Date & Time Set:"," ");
 		STATE = Set_DateTime;
 	}
 	if(Tecla == TECLA_NEXT)		// Invalida el dato, devolviendo el valor anterior a la variable provisoria
 	{									//Pasa a MIN sin modificar HOUR
 		Unit_Data_NEW.Data.Minute = Unit_Data.Data.Minute;
-		LCD_Display("Date & Time Set:", 0 , 0);
+
+		ExternalClock = ENABLED;   //Vuelvo a habilitar el reloj externo
+
+		LCD_Full_Display("Date & Time Set:"," ");
 		STATE = Set_DateTime;
 	}
 }

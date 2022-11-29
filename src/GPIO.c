@@ -18,6 +18,11 @@ void GPIO_Init(void)
 	IOCON-> PIO[IOCON_INDEX_PIO0_17] |= (2<<3) ; //PULL-UP interna para P0.17
 	IOCON-> PIO[IOCON_INDEX_PIO0_18] |= (2<<3) ; //PULL-UP interna para P0.18
 
+
+	//Para I2C no hizo falta porque el modulo RTC ya trajo R de pullup físicas
+	//IOCON-> PIO[IOCON_INDEX_PIO0_10] |= (2<<3) ; //PULL-UP interna para P0.10  I2C (SCL)
+	//IOCON-> PIO[IOCON_INDEX_PIO0_11] |= (2<<3) ; //PULL-UP interna para P0.11  I2C (SDA)
+
 	//GPIO_DIR(puerto, pin, configuración)
 	//GPIO_SET(puerto, pin, estado)
 
@@ -25,7 +30,8 @@ void GPIO_Init(void)
 	GPIO_DIR(0, 17, INPUT);  	//Tecla EDIT (PIO0_17)
 	GPIO_DIR(0, 18, INPUT);  	//Tecla UP (PIO0_18)
 
-	GPIO_DIR(1, 1,  OUTPUT);  	//LED AZUL DE ACTIVIDAD
+	GPIO_DIR(LED_AZUL, OUTPUT);  	//LED AZUL DEL STICK
+
 	GPIO_DIR(0, 19, OUTPUT);	//AL Alarma baja
 	GPIO_DIR(0, 20, OUTPUT);	//AH Alarma alta
 	GPIO_DIR(0, 21, OUTPUT);	//LED STATUS ONLINE

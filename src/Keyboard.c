@@ -66,6 +66,27 @@ uint8_t getKey(void)
 	return Temporal;
 }
 
+
+uint8_t getKey_Multi(void)
+{
+	uint8_t Tecla_Anterior = NO_KEY;
+	uint8_t Tecla_Actual = NO_KEY;
+
+	uint32_t i = 0;
+
+	Tecla_Anterior = TECLADO_Barrido_HW();
+
+	do
+	{
+		Tecla_Actual = TECLADO_Barrido_HW();
+		i++;
+	}
+	while (Tecla_Anterior != NO_KEY && Tecla_Anterior == Tecla_Actual && i < VELOCIDAD_TECLA_MULTI);
+
+	return Tecla_Actual;
+}
+
+
 void KEYBOARD_Sampler (void)
 {
 	Keyb_Buffer.UP = GPIO_Leer_Filtrada (PULSADOR_EXTERNO_0);

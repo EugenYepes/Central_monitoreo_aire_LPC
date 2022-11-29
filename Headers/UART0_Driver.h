@@ -43,6 +43,7 @@ void UART0_Send(uint8_t *Datos, uint32_t Tamanio);
 void UART0_PushTx(uint8_t Dato);
 int32_t UART0_PopTx( void );
 void UART0_PushRx(uint8_t Dato);
-int32_t UART0_PopRx( void );
+int8_t UART0_PopRx(uint8_t *dato);
+//int32_t UART0_PopRx( void );
 
 #endif /* DRIVER_UART_UART0_DRIVER_H_ */

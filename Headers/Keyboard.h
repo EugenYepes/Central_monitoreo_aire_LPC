@@ -10,11 +10,14 @@
 
 //#include "Defines.h"
 
-#define RELEASE	1       // Para el teclado
-#define PRESS 	0       // Para el teclado
+#define RELEASE						1       // Para el teclado
+#define PRESS 						0       // Para el teclado
+
+#define VELOCIDAD_TECLA_MULTI		4000    //Cuanto más alto este valor, mas lenta la tecla Multi
 
  //PROTOTIPOS DE FUNCIONES
 void KEYBOARD_Sampler (void);
+uint8_t getKey_Multi(void);
 
 //--------------------------------------------------------------------------
 //-------Estructura del teclado---------------------------------------------
@@ -29,6 +32,7 @@ typedef struct
 #define TECLA_UP	1
 #define TECLA_EDIT	2
 #define TECLA_NEXT	3
+
 
 extern STRUCT_Keyboard Keyb_Buffer;
 
