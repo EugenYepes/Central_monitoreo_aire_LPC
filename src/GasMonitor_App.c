@@ -828,7 +828,7 @@ void STATE_Receive_Data(uint8_t Tecla)                          //Receive Data:
 
 void STATE_Receive_Data_LINK(uint8_t Tecla)                     //Receive Data:
 {
-	printf("data parsed %d  ", dataParsed);
+	//printf("data parsed %d  ", dataParsed);
 	if(0 == dataParsed)
 		Rx_TLVParser();
 

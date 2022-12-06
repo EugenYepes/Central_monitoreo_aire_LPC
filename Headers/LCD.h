@@ -69,8 +69,8 @@ void LCD_SET_8bits(void); 											//Funcion para setear que manda 8 bits y se
 void LCD_SET_DDRAM (uint32_t fila); 								//Funcion que setea la DDRAM en la fila que quiera.
 void LCD_Move_16x2 (uint32_t fila, uint32_t columna); 				//Funcion que me mueve a donde quiera en el display.
 void LCD_Cursor_Move (uint8_t valor, uint8_t posicion); 			//Funcion que mueve el curso a la posicion que quiera.
-void LCD_Write_8bits (int8_t valor, uint8_t tipo); 					//Funcion que escribe al display
+void LCD_Write_8bits (char valor, char tipo); 					//Funcion que escribe al display
 void LCD_Display(int8_t* msg, uint32_t fila, uint32_t columna); 	//Funcion que envia el mensaje
-void LCD_Full_Display(int8_t* msg1, int8_t* msg2);					//Funcion que envia el mensaje EN PANTALLA COMPLETA CON CLEAN SCREEN
+void LCD_Full_Display(char* msg1, char* msg2);					//Funcion que envia el mensaje EN PANTALLA COMPLETA CON CLEAN SCREEN
 
 #endif /* LCD_H_ */

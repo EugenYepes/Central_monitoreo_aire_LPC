@@ -142,7 +142,7 @@ void LCD_Cursor_Move (uint8_t posicion, uint8_t valor)
 	}
 }
 
-void LCD_Write_8bits (int8_t valor, uint8_t tipo)
+void LCD_Write_8bits (char valor, char tipo)
 {
 	uint32_t i;
 	switch(tipo)
@@ -249,7 +249,7 @@ void LCD_Write_8bits (int8_t valor, uint8_t tipo)
 	}
 }
 
-void LCD_Full_Display(int8_t* msg1, int8_t* msg2)
+void LCD_Full_Display(char* msg1, char* msg2)
 {
 	uint8_t i = 0;
 	uint8_t line = 1;
