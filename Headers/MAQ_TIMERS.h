@@ -10,17 +10,18 @@
 
 #define CANTIDAD_TIMER  9
 
-#define TIMER_STATEMACHINE_ContextMenu  0
-#define TIMER_Start_ADC_Conversions 	1
-#define TIMER_SO2_ADC_Conversion		2
-#define TIMER_CO_ADC_Conversion			3
-#define TIMER_EX_ADC_Conversion			4
-#define TIMER_TEMP_ADC_Conversion		5
-#define TIMER_WakeUp					6
-#define TIMER_Alarms_Sentinel			7
-#define TIMER_EXTERNALMODULES_Clock		8
-
-//#define TIMER_TLV_Module_Manager		9
+typedef enum
+{
+	TIMER_STATEMACHINE_ContextMenu,
+	TIMER_Start_ADC_Conversions,
+	TIMER_SO2_ADC_Conversion,
+	TIMER_CO_ADC_Conversion,
+	TIMER_EX_ADC_Conversion,
+	TIMER_TEMP_ADC_Conversion,
+	TIMER_WakeUp,
+	TIMER_Alarms_Sentinel,
+	TIMER_EXTERNALMODULES_Clock
+}timers_t;
 
 
 //--------------------------------------------------------------------------

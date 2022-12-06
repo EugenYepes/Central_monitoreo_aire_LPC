@@ -23,7 +23,7 @@ void sendTLVtoUART_request(void)
 
 void Rx_TLVParser(void)
 {
-	static uint8_t tag[10], buff[50], aux[50];
+	static char tag[10], buff[50], aux[50];
 	uint8_t dato;
 	static uint8_t CheckSumRX = 0;
 	static uint8_t lengthDataTag = 0;
@@ -90,7 +90,8 @@ void Rx_TLVParser(void)
 						Estado = 0;
 						//printf("indefinite length not developed");
 					}
-				} else
+				}
+				else
 					Estado = 0;
 				break;
 
@@ -104,16 +105,21 @@ void Rx_TLVParser(void)
 					}
 					else
 					{
+						CheckSumRX ^= dato;
+						aux[i] = dato;
+						i++;
 						Estado = 5;
 					}
-				} else {
+				}
+				else
+				{
 					Estado = 0;
 				}
 
 				break;
 			case 5:
-//			if(CheckSumRX == dato)   //Comparo Checksum calculado por el enviado (ambos son de 8 bits)
-//				{
+				if(CheckSumRX == dato)   //Comparo Checksum calculado por el enviado (ambos son de 8 bits)
+				{
 					// get date on format dd.MM.yy hh:mm:ss
 					if (memcmp(tag, TAG_DATE_TIME, SIZEOF_TAG(TAG_DATE_TIME)) == 0)
 					{
@@ -153,9 +159,8 @@ void Rx_TLVParser(void)
 							i += 3;
 						}
 						dataParsed = 1;
-//						printf("day %d\n", Unit_Data.Data.Day);
-			        }
-//		 }
+					}
+				}
 				Estado = 0;
 				break;
 			default :
