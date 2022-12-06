@@ -2,7 +2,7 @@
  * Defines.h
  *
  *  Created on: Jul 9, 2022
- *      Author: Pablo Victoria Koruza
+ *      Author: Pablo Victoria Koruza & Eugenio Yepes
  */
 
 #ifndef DEFINES_H_
@@ -17,6 +17,7 @@ typedef unsigned int 	uint32_t;
 
 #include <cr_section_macros.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <LPC845.h>
 #include <GPIO.h>
@@ -33,11 +34,6 @@ typedef unsigned int 	uint32_t;
 
 void General_Init(void);
 
-uint8_t TECLADO_Barrido_HW(void);
-void TECLADO_Barrido_SW(uint8_t Tecla_Actual);
-uint8_t getKey(void);
-
-#define 	NO_KEY		0xff
-#define NUM_ELEMENTS(data) (sizeof(data)/sizeof(*data)) - 1
+//#define   NUM_ELEMENTS(data) (sizeof(data)/sizeof(*data)) - 1
 
 #endif /* DEFINES_H_ */

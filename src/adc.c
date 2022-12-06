@@ -1,8 +1,8 @@
 /*
- * DRIVER_ADC.c
+ * ADC.c
  *
- *  Created on: Jan 3, 2020
- *      Author: GJF-Trabajo
+ *  Created on: Nov 4, 2022
+ *      Author: Pablo Victoria Koruza & Eugenio Yepes
  */
 
 #include "Defines.h"
@@ -18,15 +18,7 @@ float Measure_SO2 = 0;
 float Measure_EX = 0;
 float Measure_TEMP = 0;
 
-/*****************************************************************************
-** Function name:		ADC_Init
-**
-** Descriptions:		Inicializamos el ADC
-**
-** parameters:			void
-** Returned value:		void
-**
-*****************************************************************************/
+
 void ADC_Init(void)
 {
 	SYSCON->PDRUNCFG &= ~(1 << 4);				// Enciendo el modulo del ADC que esta apagado por default
@@ -71,9 +63,7 @@ void ADC_Disparo(uint32_t Canal)
 
 void ADC_SEQA_IRQHandler(void)
 {
-  //uint8_t Buf_ADC[30];
 	uint32_t	Valor = ADC0->SEQ_GDAT[0];
-  //uint32_t 	Canal = (Temporal >> 26) & 0x0f;
 	Valor = Valor >> 4;
 	Valor &= 0x0FFF;
 
@@ -120,8 +110,7 @@ void ADC_SEQA_IRQHandler(void)
 		Data_NoFiltered.TEMP_Reading = Measure_TEMP;
 
 		Sensor_DataFilter(TEMP_ADC_Channel);           //Envío la medición de TEMP sin filtrar al filtro de ADC
-		//printf("Meas: %.2f \n", Measure_T);
-		//printf("Data %.2f \n", data.temperature);
+
 	}
 
 }

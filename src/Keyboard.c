@@ -7,8 +7,6 @@
 
 #include <Defines.h>
 
-STRUCT_Keyboard Keyb_Buffer;
-
 uint8_t Tecla_Filtrada = NO_KEY;
 
 uint8_t TECLADO_Barrido_HW(void)
@@ -66,11 +64,25 @@ uint8_t getKey(void)
 	return Temporal;
 }
 
-void KEYBOARD_Sampler (void)
+
+uint8_t getKey_Multi(void)
 {
-	Keyb_Buffer.UP = GPIO_Leer_Filtrada (PULSADOR_EXTERNO_0);
-	Keyb_Buffer.EDIT = GPIO_Leer_Filtrada (PULSADOR_EXTERNO_1);
-	Keyb_Buffer.NEXT = GPIO_Leer_Filtrada (PULSADOR_EXTERNO_2);
+	uint8_t Tecla_Anterior = NO_KEY;
+	uint8_t Tecla_Actual = NO_KEY;
+
+	uint32_t i = 0;
+
+	Tecla_Anterior = TECLADO_Barrido_HW();
+
+	do
+	{
+		Tecla_Actual = TECLADO_Barrido_HW();
+		i++;
+	}
+	while (Tecla_Anterior != NO_KEY && Tecla_Anterior == Tecla_Actual && i < VELOCIDAD_TECLA_MULTI);
+
+	return Tecla_Actual;
 }
+
 
 

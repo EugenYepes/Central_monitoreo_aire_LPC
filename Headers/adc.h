@@ -1,8 +1,8 @@
 /*
- * DRIVER_ADC.h
+ * ADC.h
  *
  *  Created on: Nov 5, 2022
- *      Author: Pablo Victoria Koruza
+ *      Author: Pablo Victoria Koruza & Eugenio Yepes
  */
 
 #ifndef ADC_H_

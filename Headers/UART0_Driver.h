@@ -1,15 +1,15 @@
 /*
  * UART0_Driver.h
  *
- *  Created on: Jul 26, 2019
- *      Author: GJF-Trabajo
+ *  Created on: Jul 9, 2022
+ *      Author: Pablo Victoria Koruza
  */
 
-#ifndef DRIVER_UART_UART0_DRIVER_H_
-#define DRIVER_UART_UART0_DRIVER_H_
+#ifndef UART0_DRIVER_H_
+#define UART0_DRIVER_H_
 
-#define		UART0_TAMANIO_COLA_RX					50
-#define		UART0_TAMANIO_COLA_TX					50
+#define		UART0_TAMANIO_COLA_RX			50
+#define		UART0_TAMANIO_COLA_TX			50
 
 typedef struct
 {
@@ -33,16 +33,14 @@ typedef struct
 	STRUCT_TX0					TX;
 }UART0_Struct;
 
-/**
- * @brief UART0_Init
- * initialization wart for serial communication
- * @param baudrate speed of serial communication
- */
+
+//-----PROTOTIPOS DE FUNCIONES UART ---------------
+
 void UART0_Init(uint32_t baudrate);
 void UART0_Send(uint8_t *Datos, uint32_t Tamanio);
 void UART0_PushTx(uint8_t Dato);
-int32_t UART0_PopTx( void );
+int32_t UART0_PopTx(void);
 void UART0_PushRx(uint8_t Dato);
-int32_t UART0_PopRx( void );
+int8_t UART0_PopRx(uint8_t *dato);
 
-#endif /* DRIVER_UART_UART0_DRIVER_H_ */
+#endif /* UART0_DRIVER_H_ */
