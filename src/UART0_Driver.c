@@ -1,25 +1,15 @@
 /*
  * UART_Driver.c
  *
- *  Created on: May 17, 2019
- *      Author: GJF-Trabajo
+ *  Created on: Jul 9, 2022
+ *      Author: Pablo Victoria Koruza & Eugenio Yepes
  */
 
 #include 	"Defines.h"
 
 UART0_Struct		UART0;
-
 uint32_t Enviando_Datos = 0;
 
-/*****************************************************************************
-** Function name:		UART0_IRQHandler
-**
-** Descriptions:		UART interrupt handler
-**
-** parameters:			None
-** Returned value:		None
-**
-*****************************************************************************/
 
 void UART0_Init(uint32_t baudrate)
 {
@@ -27,8 +17,6 @@ void UART0_Init(uint32_t baudrate)
 	SYSCON->SYSAHBCLKCTRL0 |= (1 << 14);					// 14 = UART0
 
 	// CONFIGURO LA MATRIX
-	//SWM0->PINASSIGN.PINASSIGN0 = (8 << 0) | (9 << 8);		// TX0 = P0.8	RX0 = P0.9
-	//SWM0->PINASSIGN.PINASSIGN0 = (10 << 0) | (11 << 8);	// TX0 = P0.10	RX0 = P0.11
 	SWM0->PINASSIGN.PINASSIGN0 = (27 << 0) | (26 << 8);		// TX0 = P0.27	RX0 = P0.26
 
 	// CONFIGURACION GENERAL
@@ -105,95 +93,13 @@ int8_t UART0_PopRx(uint8_t *dato)
 
 	if ( UART0.RX.Indice_in != UART0.RX.Indice_out )
 	{
-		*dato = UART0.TX.Buffer[UART0.RX.Indice_out];
+		*dato = UART0.RX.Buffer[UART0.RX.Indice_out];
 		UART0.RX.Indice_out ++;
 		UART0.RX.Indice_out %= UART0_TAMANIO_COLA_RX;
+		status = 0;
 	}
 	return status;
 }
-
-/*
-int32_t UART0_PopRx(void)
-{
-	int32_t dato = -1;
-
-	if ( UART0.RX.Indice_in != UART0.RX.Indice_out )
-	{
-		dato = (int32_t) UART0.TX.Buffer[UART0.RX.Indice_out];
-		UART0.RX.Indice_out ++;
-		UART0.RX.Indice_out %= UART0_TAMANIO_COLA_RX;
-	}
-	return dato;
-}
-*/
-
-//----------------------------------------------------
-
-/*#define 	CANTIDAD_DATOS	10
-
-uint32_t 	in = 0;
-uint32_t 	out = 0;
-uint8_t 	Buf[CANTIDAD_DATOS];
-
-void PUSH_RX(uint8_t Dato)
-{
-	Buf[in] = Dato;
-	
-	in++;
-	if(in > CANTIDAD_DATOS)
-		in = 0;
-	
-	//in %= CANTIDAD_DATOS;    es otra forma de escribirlo
-}
-
-void PUSH_TX(uint8_t Dato)
-{
-	Buf[in] = Dato;
-
-	in++;
-	if(in > CANTIDAD_DATOS)
-		in = 0;
-
-	//in %= CANTIDAD_DATOS;    es otra forma de escribirlo
-}
-
-
-int16_t POP_TX(void)      //Ojo, es signado (int16_t) porque cuando no haya nada en el buffer devuelve -1
-{
-	uint8_t 	Temporal;
-	
-	if(in == out)
-		return -1;
-	
-	Temporal = Buf[out];
-	
-	out++;
-	if(out > CANTIDAD_DATOS)
-		out = 0;
-	
-	return Temporal;
-}
-
-
-//OTRA FORMA DE HACER POP CON PUNTEROS. ES VERSATIL PORQUE NO DEVUELVE EL DATO SINO EL ESTADO SI FUE POPEADO O NO
-
-/*uint8_t POP_RX(uint8_t *Dato)
-{
-	uint8_t 	Temporal;
-	
-	if(in == out)
-		return 0;
-	
-	*Dato = Buf[out];
-	
-	out++;
-	if(out > CANTIDAD_DATOS)
-		out = 0;
-	
-	return 1;
-}
-*/
-
 
 void UART0_Send(uint8_t *data, uint32_t sizeData)
 {
@@ -232,7 +138,6 @@ void UART0_IRQHandler(void)
 	{
 		//Interrupcion RX
 		Dato_Temporal = (int16_t)USART0->RXDAT;
-		
 		UART0_PushRx(Dato_Temporal);
 	}
 	
@@ -251,37 +156,3 @@ void UART0_IRQHandler(void)
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

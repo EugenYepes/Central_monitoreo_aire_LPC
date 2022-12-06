@@ -1,19 +1,27 @@
-
+/*
+ * LCD.c
+ *
+ *  Created on: Nov. 25, 2022
+ *      Author: Pablo Victoria Koruza & Eugenio Yepes
+ */
 
 #include <Defines.h>
 
 
-void Demora (uint32_t demoras){
-	uint32_t i=0;
-	for(i=0;i<=demoras;i++){}
+void Demora (uint32_t demoras)
+{
+	uint32_t i = 0;
+	for(i = 0; i <= demoras; i++){}
 }
-void LCD_PULSO_E (void){
+void LCD_PULSO_E (void)
+{
 	GPIO_SET(LCD_E,  LCD_ALTO);
 	Demora(DEMORA_E);
 	GPIO_SET(LCD_E,  LCD_BAJO);
 	Demora(DEMORA_E);
 }
-void LCD_Init_salidas_8bits (void){
+void LCD_Init_salidas_8bits (void)
+{
 	GPIO_DIR(LCD_RS,OUTPUT);
 	//GPIO_DIR(LCD_RW,OUTPUT);
 	GPIO_DIR(LCD_E,OUTPUT);
@@ -26,19 +34,23 @@ void LCD_Init_salidas_8bits (void){
 	GPIO_DIR(LCD_D6,OUTPUT);
 	GPIO_DIR(LCD_D7,OUTPUT);
 }
-void LCD_init_8bits (void){
+void LCD_init_8bits (void)
+{
 	uint32_t i;
 	LCD_Init_salidas_8bits();
-for(i=0; i<5; i++){
-	Demora(500);
-	LCD_SET_8bits();
-	LCD_Write_8bits(0,LCD_COMMAND_DISPLAY_ON_CURSOR_BLINK_ON);
-	LCD_Write_8bits(0,LCD_COMMAND_ENTRY_MODE_SET);
-	LCD_Write_8bits(0, LCD_COMMAND_CLEAR_DISPLAY);
-	LCD_Write_8bits(0, LCD_COMMAND_RETURN_HOME);
+	for(i=0; i<5; i++)
+	{
+		Demora(500);
+		LCD_SET_8bits();
+		LCD_Write_8bits(0,LCD_COMMAND_DISPLAY_ON_CURSOR_BLINK_ON);
+		LCD_Write_8bits(0,LCD_COMMAND_ENTRY_MODE_SET);
+		LCD_Write_8bits(0, LCD_COMMAND_CLEAR_DISPLAY);
+		LCD_Write_8bits(0, LCD_COMMAND_RETURN_HOME);
+	}
 }
-}
-void LCD_SET_8bits(void){
+
+void LCD_SET_8bits(void)
+{
 
 	GPIO_SET(LCD_D7, LCD_BAJO);
 	GPIO_SET(LCD_D6, LCD_BAJO);
@@ -55,6 +67,7 @@ void LCD_SET_8bits(void){
 
 	LCD_PULSO_E();
 }
+
 void LCD_SET_DDRAM (uint32_t fila)
 {
 	//GPIO_SET(LCD_RW,0);
@@ -77,10 +90,12 @@ void LCD_SET_DDRAM (uint32_t fila)
 
 void LCD_Move_16x2 (uint32_t fila, uint32_t columna)
 {
-	if(fila==1){
+	if(1 == fila)
+	{
 		LCD_SET_DDRAM(0);
 	}
-	if(fila==2){
+	if(2 == fila)
+	{
 		LCD_SET_DDRAM(64);
 	}
 	LCD_Cursor_Move(columna, CURSOR_DERECHA);
@@ -89,50 +104,57 @@ void LCD_Move_16x2 (uint32_t fila, uint32_t columna)
 void LCD_Cursor_Move (uint8_t posicion, uint8_t valor)
 {
 	uint8_t i=0;
-	if(posicion>0){
-		for(i=0; i<posicion; i++){
-						GPIO_SET(LCD_RS, LCD_BAJO);
-						//GPIO_SET(LCD_RW, LCD_BAJO);
+	if(posicion>0)
+	{
+		for(i=0; i<posicion; i++)
+		{
+			GPIO_SET(LCD_RS, LCD_BAJO);
+			//GPIO_SET(LCD_RW, LCD_BAJO);
 
-						GPIO_SET(LCD_D7, LCD_BAJO);
-						GPIO_SET(LCD_D6, LCD_BAJO);
-						GPIO_SET(LCD_D5, LCD_BAJO);
-						GPIO_SET(LCD_D4, LCD_ALTO);
+			GPIO_SET(LCD_D7, LCD_BAJO);
+			GPIO_SET(LCD_D6, LCD_BAJO);
+			GPIO_SET(LCD_D5, LCD_BAJO);
+			GPIO_SET(LCD_D4, LCD_ALTO);
 
-						if(valor==CURSOR_IZQUIERDA){
-								GPIO_SET(LCD_D3, LCD_BAJO); //S/C = 0
-								GPIO_SET(LCD_D2, LCD_BAJO); // R/L =0
-								GPIO_SET(LCD_D1, LCD_BAJO); //Dont Care.
-								GPIO_SET(LCD_D0, LCD_BAJO); //Dont Care.
-								LCD_PULSO_E();
-							}
+			if(valor==CURSOR_IZQUIERDA)
+			{
+				GPIO_SET(LCD_D3, LCD_BAJO); //S/C = 0
+				GPIO_SET(LCD_D2, LCD_BAJO); // R/L =0
+				GPIO_SET(LCD_D1, LCD_BAJO); //Dont Care.
+				GPIO_SET(LCD_D0, LCD_BAJO); //Dont Care.
+				LCD_PULSO_E();
+			}
+			if(valor==CURSOR_DERECHA)
+			{
+				GPIO_SET(LCD_D3, LCD_BAJO); // S/C = 0
+				GPIO_SET(LCD_D2, LCD_ALTO); // R/L = 1
+				GPIO_SET(LCD_D1, LCD_BAJO); //Dont Care.
+				GPIO_SET(LCD_D0, LCD_BAJO); //Dont Care.
+				LCD_PULSO_E();
+			}
 
-						if(valor==CURSOR_DERECHA){
-								GPIO_SET(LCD_D3, LCD_BAJO); // S/C = 0
-								GPIO_SET(LCD_D2, LCD_ALTO); // R/L = 1
-								GPIO_SET(LCD_D1, LCD_BAJO); //Dont Care.
-								GPIO_SET(LCD_D0, LCD_BAJO); //Dont Care.
-								LCD_PULSO_E();
-							}
+		}
 
 	}
-
-	}
-	if(posicion==0){
+	if(posicion==0)
+	{
 		LCD_Write_8bits(posicion, LCD_COMMAND_RETURN_HOME);
 	}
 }
-void LCD_Write_8bits (int8_t valor, uint8_t tipo){
+
+void LCD_Write_8bits (int8_t valor, uint8_t tipo)
+{
 	uint32_t i;
-	switch(tipo){
+	switch(tipo)
+	{
 	case LCD_DATA:
 				{
 					LCD_Init_salidas_8bits();
 					Demora(30);
 					GPIO_SET(LCD_RS, LCD_ALTO);
 					//GPIO_SET(LCD_RW, LCD_BAJO);
-					for(i=0; i<3;i++){
-
+					for(i=0; i<3;i++)
+					{
 						GPIO_SET(LCD_D7, (valor>>7) & 0x01);
 						GPIO_SET(LCD_D6, (valor>>6) & 0x01);
 						GPIO_SET(LCD_D5, (valor>>5) & 0x01);
@@ -275,6 +297,3 @@ void LCD_Display(int8_t* msg, uint32_t fila, uint32_t columna)
 	}
 }
 
-void MDE_Display (void){
-	//LCD_Display("A");
-}

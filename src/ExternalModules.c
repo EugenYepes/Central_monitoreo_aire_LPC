@@ -1,14 +1,16 @@
 /*
  * ExternalModules.c
  *
- *  Created on: 5 nov. 2022
- *      Author: Pablo Victoria Koruza
+ *  Created on: Nov 5. 2022
+ *      Author: Pablo Victoria Koruza & Eugenio Yepes
  */
 
 #include <Defines.h>
 
-extern UnitParameters_t Unit_Data;  //Para uso del reloj interno por software
+extern UnitParameters_t Unit_Data;  	//Para uso del reloj interno por software
+extern UnitParameters_t Unit_Data_NEW;  //Para actualizar variables auxiliares que se usan para configurar hora y fecha manualmente por teclado
 extern uint8_t ExternalClock;
+
 
 void EXTERNALMODULES_Lo_Alarm(uint32_t command)
 {
@@ -38,33 +40,33 @@ void EXTERNALMODULES_Clock(void)
 {
 	if(ENABLED == ExternalClock)
 	{
-	uint32_t Leap_Year_Calc;    //Uso para calcular año bisiesto
+		uint32_t Leap_Year_Calc;    //Uso para calcular año bisiesto
 
-	Unit_Data.Data.Second ++;
+		Unit_Data.Data.Second ++;
 
-	if(Unit_Data.Data.Second == 60)
-	{
-		Unit_Data.Data.Second = 0;
-		Unit_Data.Data.Minute ++;
-	}
-
-	if(Unit_Data.Data.Minute == 60)
-	{
-		Unit_Data.Data.Minute = 0;
-		Unit_Data.Data.Hour ++;
-	}
-
-	if(Unit_Data.Data.Hour == 24)
-	{
-		Unit_Data.Data.Hour = 0;
-
-		if((Unit_Data.Data.Month % 2) == 0)    //Antes de incrementar un día, analizo la situación en el calendario
+		if(Unit_Data.Data.Second == 60)
 		{
-			if (Unit_Data.Data.Month < 7)
+			Unit_Data.Data.Second = 0;
+			Unit_Data.Data.Minute ++;
+		}
+
+		if(Unit_Data.Data.Minute == 60)
+		{
+			Unit_Data.Data.Minute = 0;
+			Unit_Data.Data.Hour ++;
+		}
+
+		if(Unit_Data.Data.Hour == 24)
+		{
+			Unit_Data.Data.Hour = 0;
+
+			if((Unit_Data.Data.Month % 2) == 0)    //Antes de incrementar un día, analizo la situación en el calendario
 			{
-	//-------------------------- COMIENZO DEL MOTOR DE CALCULO DE AÑOS BISIESTOS----------------------------------------------------------------
-				if(Unit_Data.Data.Month == 2)
+				if (Unit_Data.Data.Month < 7)
 				{
+	//-------------------------- COMIENZO DEL MOTOR DE CALCULO DE AÑOS BISIESTOS----------------------------------------------------------------
+					if(Unit_Data.Data.Month == 2)
+					{
 						Leap_Year_Calc = Unit_Data.Data.Year % 10;   //Extrae la unidad
 
 						if((Unit_Data.Data.Year % 2) != 0)     //Descarto años impares
@@ -228,6 +230,13 @@ void EXTERNALMODULES_Clock(void)
 				}
 			}
 		}
+
+		Unit_Data_NEW.Data.Year = Unit_Data.Data.Year;       //Se actualizan las variables auxiliares que se usan para configurar hora y fecha manualmente por teclado
+		Unit_Data_NEW.Data.Month = Unit_Data.Data.Month;
+		Unit_Data_NEW.Data.Day = Unit_Data.Data.Day;
+		Unit_Data_NEW.Data.Hour = Unit_Data.Data.Hour;
+		Unit_Data_NEW.Data.Minute = Unit_Data.Data.Minute;
+		Unit_Data_NEW.Data.Second = Unit_Data.Data.Second;
 	}
 }
 

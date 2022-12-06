@@ -10,24 +10,23 @@
 AirData_t data;
 extern uint8_t dataParsed;
 extern UnitParameters_t Unit_Data;
+extern UnitParameters_t Unit_Data_NEW;
 
 void sendTLVtoUART_request(void)
 {
 	unsigned char buffer[MAX_SIZE_BUFF];
 	int lengthBuffer;
 	makeTLVrequest(buffer, &lengthBuffer);
-	//for (int i = 0; i < lengthBuffer; i++) {
-	//        printf("%02X", buffer[i]);
-	//    }
 	UART0_Send(buffer, lengthBuffer);
 }
 
+
 void Rx_TLVParser(void)
 {
-	uint8_t tag[10], buff[50], aux[50];
+	static uint8_t tag[10], buff[50], aux[50];
 	uint8_t dato;
-	uint8_t CheckSumRX = 0;
-	uint8_t lengthDataTag = 0;
+	static uint8_t CheckSumRX = 0;
+	static uint8_t lengthDataTag = 0;
 	static uint8_t tagPos = 0, i = 0;
 	static uint8_t Estado = 0;
 
@@ -38,18 +37,25 @@ void Rx_TLVParser(void)
 			case 0:
 				if(dato == 0xFF)
 				{
+					i = 0;
+					lengthDataTag = 0;
+					CheckSumRX = 0;
+					tagPos = 0;
+					memset(buff, 0x00, sizeof(buff));
+					memset(tag, 0x00, sizeof(tag));
+					memset(aux, 0x00, sizeof(aux));
 					dataParsed = 0;
 					Estado = 1;
-					CheckSumRX = dato;
+					CheckSumRX ^= dato;
 				}
 				break;
 
 			case 1:
 				if((dato & 0x1F) == 0x1F)
 				{
+					CheckSumRX ^= dato;
 					tag[tagPos] = dato;
 					tagPos++;
-					CheckSumRX ^= dato;
 					Estado = 2;
 				}
 				else
@@ -60,24 +66,26 @@ void Rx_TLVParser(void)
 
 				if((dato & 0x80) == 0x80)
 				{
+					CheckSumRX ^= dato;
 					tag[tagPos] = dato;
 					tagPos++;
-					CheckSumRX ^= dato;
 				}
 				else
 				{
-					tag[tagPos] = dato;
 					CheckSumRX ^= dato;
+					tag[tagPos] = dato;
 					Estado = 3;
 				}
 				break;
 
 			case 3:
-				if ((dato & 0x80) != 0x80) {
-					if (dato != 0x80) {
+				if ((dato & 0x80) != 0x80)
+				{
+					if (dato != 0x80)
+					{
+						CheckSumRX ^= dato;
 						lengthDataTag += dato & 0x7F;
 						Estado = 4;
-						CheckSumRX ^= dato;
 					} else {
 						Estado = 0;
 						//printf("indefinite length not developed");
@@ -88,7 +96,8 @@ void Rx_TLVParser(void)
 
 			case 4:
 				if (memcmp(tag, TAG_DATE_TIME, SIZEOF_TAG(TAG_DATE_TIME)) == 0) {
-					if (i < lengthDataTag) {
+					if (i < lengthDataTag - 1)
+					{
 						CheckSumRX ^= dato;
 						aux[i] = dato;
 						i++;
@@ -97,34 +106,56 @@ void Rx_TLVParser(void)
 					{
 						Estado = 5;
 					}
+				} else {
+					Estado = 0;
 				}
+
 				break;
 			case 5:
-				if(CheckSumRX == dato)   //Comparo Checksum calculado por el enviado (ambos son de 8 bits)
-				{
-					Estado = 0;
-					// get date what have format dd.MM.yy hh:mm:ss
-					if (memcmp(tag, TAG_DATE_TIME, SIZEOF_TAG(TAG_DATE_TIME)) == 0) {
+//			if(CheckSumRX == dato)   //Comparo Checksum calculado por el enviado (ambos son de 8 bits)
+//				{
+					// get date on format dd.MM.yy hh:mm:ss
+					if (memcmp(tag, TAG_DATE_TIME, SIZEOF_TAG(TAG_DATE_TIME)) == 0)
+					{
 						for (i = 0; i < lengthDataTag;)
 						{
 							sprintf(buff, "%c%c", aux[i], aux[i + 1]);
 							if (0 == i)
+							{
 								Unit_Data.Data.Day = atoi(buff);
+								Unit_Data_NEW.Data.Day = Unit_Data.Data.Day;	  //Guarda también en variable auxiliar para futuras nuevas configuraciones manuales por teclado
+							}
 							if (3 == i)
+							{
 								Unit_Data.Data.Month = atoi(buff);
+								Unit_Data_NEW.Data.Month = Unit_Data.Data.Month;  //Guarda también en variable auxiliar para futuras nuevas configuraciones manuales por teclado
+							}
 							if (6 == i)
+							{
 								Unit_Data.Data.Year = atoi(buff);
+								Unit_Data_NEW.Data.Year = Unit_Data.Data.Year;    //Guarda también en variable auxiliar para futuras nuevas configuraciones manuales por teclado
+							}
 							if (9 == i)
+							{
 								Unit_Data.Data.Hour = atoi(buff);
+								Unit_Data_NEW.Data.Hour = Unit_Data.Data.Hour;
+							}
 							if (12 == i)
+							{
 								Unit_Data.Data.Minute = atoi(buff);
+								Unit_Data_NEW.Data.Minute = Unit_Data.Data.Minute;
+							}
 							if (15 == i)
+							{
 								Unit_Data.Data.Second = atoi(buff);
+								Unit_Data_NEW.Data.Second = Unit_Data.Data.Second;
+							}
 							i += 3;
 						}
-					}
-					dataParsed = 1;
-				}
+						dataParsed = 1;
+//						printf("day %d\n", Unit_Data.Data.Day);
+			        }
+//		 }
 				Estado = 0;
 				break;
 			default :
@@ -133,14 +164,13 @@ void Rx_TLVParser(void)
 	}
 }
 
+
+
 void sendTLVtoUART(void)
 {
 	unsigned char buffer[MAX_SIZE_BUFF];
 	int lengthBuffer;
 	makeTLV(data, buffer, &lengthBuffer);
-	//for (int i = 0; i < lengthBuffer; i++) {
-	//        printf("%02X", buffer[i]);
-	//    }
 	UART0_Send(buffer, lengthBuffer);
 }
 

@@ -19,12 +19,12 @@
 #define DEFAULT_CO_SPAN_FACTOR      1
 #define DEFAULT_EX_ZERO_FACTOR		2
 #define DEFAULT_EX_SPAN_FACTOR		1
-#define DEFAULT_SO2_LO_ALARM 		2
-#define DEFAULT_SO2_HI_ALARM		5
-#define DEFAULT_CO_LO_ALARM   		10
-#define DEFAULT_CO_HI_ALARM			20
-#define DEFAULT_EX_LO_ALARM			10
-#define DEFAULT_EX_HI_ALARM			20
+#define DEFAULT_SO2_LO_ALARM 		5
+#define DEFAULT_SO2_HI_ALARM		8
+#define DEFAULT_CO_LO_ALARM   		15
+#define DEFAULT_CO_HI_ALARM			25
+#define DEFAULT_EX_LO_ALARM			15
+#define DEFAULT_EX_HI_ALARM			25
 
 
 //----DEFINES DE LA FUNCIÓN DE FILTRADO DE ADC --------------------------------------------

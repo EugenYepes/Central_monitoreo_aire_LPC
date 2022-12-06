@@ -1,40 +1,29 @@
 /*
  * Keyboard.h
  *
- *  Created on: 5 nov. 2022
- *      Author: Pablo Victoria Koruza
+ *  Created on: Nov. 5 2022
+ *      Author: Pablo Victoria Koruza & Eugenio Yepes
  */
 
 #ifndef KEYBOARD_H_
 #define KEYBOARD_H_
 
-//#include "Defines.h"
+//---------DEFINES DE TECLADO-----------------------------------------------
 
-#define RELEASE						1       // Para el teclado
+#define TECLA_UP					1
+#define TECLA_EDIT					2
+#define TECLA_NEXT					3
 #define PRESS 						0       // Para el teclado
-
+#define NO_KEY						0xFF
+#define CANTIDAD_VALIDA_REBOTE 		30		//Cantidad de muestras a tomar para considerar un estado valido por antirebote
 #define VELOCIDAD_TECLA_MULTI		4000    //Cuanto más alto este valor, mas lenta la tecla Multi
 
- //PROTOTIPOS DE FUNCIONES
-void KEYBOARD_Sampler (void);
+//---------PROTOTIPOS DE FUNCIONES DE TECLADO -----------------------------
+
+uint8_t TECLADO_Barrido_HW(void);
+void TECLADO_Barrido_SW(uint8_t Tecla_Actual);
+uint8_t getKey(void);
 uint8_t getKey_Multi(void);
-
-//--------------------------------------------------------------------------
-//-------Estructura del teclado---------------------------------------------
-
-typedef struct
-{
-    uint32_t UP;
-    uint32_t EDIT;
-    uint32_t NEXT;
-}STRUCT_Keyboard;
-
-#define TECLA_UP	1
-#define TECLA_EDIT	2
-#define TECLA_NEXT	3
-
-
-extern STRUCT_Keyboard Keyb_Buffer;
 
 //--------------------------------------------------------------------------
 //--------------------------------------------------------------------------

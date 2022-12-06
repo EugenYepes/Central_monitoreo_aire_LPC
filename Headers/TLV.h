@@ -11,28 +11,29 @@
 #include "Defines.h"
 
 
-//Defines
+//----------DEFINES DE MODULO TLV ------------------------------------------
 #include <string.h>
 
-#define ENABLED			1
-#define DISABLED		0
+#define ENABLED					1
+#define DISABLED				0
 
-#define TAG_SULFUR_DIOXIDE "\x5F\x00"
-#define TAG_CARBON_MONOXIDE "\x5F\x01"
-#define TAG_LEL "\x5F\x02"
-#define TAG_TEMPERATURE "\x5F\x03"
+#define TAG_SULFUR_DIOXIDE 		"\x5F\x00"
+#define TAG_CARBON_MONOXIDE 	"\x5F\x01"
+#define TAG_LEL 				"\x5F\x02"
+#define TAG_TEMPERATURE 		"\x5F\x03"
 
-#define REQUEST_DATE '1'
-#define TAG_REQUEST "\x5F\x04"
+#define REQUEST_DATE 			'1'
+#define TAG_REQUEST 			"\x5F\x04"
+#define TAG_DATE_TIME 			"\x5F\x05"
 
-#define TAG_DATE_TIME "\x5F\x05"
+#define MAX_SIZE_BUFF 			50
 
-#define MAX_SIZE_BUFF 50
 #define SIZEOF_TAG(data) (sizeof(data)/sizeof(*data)) - 1
-#define NUM_DECIMALS_FORMAT "%.3f"
+
+#define NUM_DECIMALS_FORMAT 	"%.3f"
 
 //ESTRUCTURAS Y VARIABLES
-//------Estructuras de sensores------------------------------------------------------
+//---------Estructuras de sensores------------------------------------------
 
 typedef struct AirData {
     float sulfurDioxide;
@@ -41,7 +42,7 @@ typedef struct AirData {
     float temperature;
 } AirData_t;
 
-//PROTOTIPOS DE FUNCIONES TLV
+//--------PROTOTIPOS DE FUNCIONES TLV---------------------------------------
 
 void sendTLVtoUART(void);
 void sendTLVtoUART_request(void);

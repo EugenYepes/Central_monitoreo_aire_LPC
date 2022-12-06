@@ -227,6 +227,7 @@ void Setup_Default_Parameters(void)      //CARGA PARAMETROS DE FABRICA SI LA MEM
 	Unit_Data.Data.Day = 1;
 	Unit_Data.Data.Hour = 0;
 	Unit_Data.Data.Minute = 0;
+	Unit_Data.Data.Second = 0;
 	Unit_Data.Serial_Number = SERIAL_NUMBER;
 	Unit_Data.ID = DEFAULT_ID;
 	Unit_Data.TEMP_Config.SPAN_Factor = DEFAULT_TEMP_SPAN_FACTOR;
@@ -792,7 +793,7 @@ void STATE_Settings(uint8_t Tecla)
 	{
 		 if(DISABLED == MeasMode && DISABLED == AlarmsMode)  //Condicion previa para entrar en Calibración
 		{
-			 LCD_Full_Display("Setup unit", "from PC:");
+			 LCD_Full_Display("Set Date & Time", "from PC?");
 			 STATE = Receive_Data;
 		}
 		 if(ENABLED == MeasMode && DISABLED == AlarmsMode)   //Condicion previa para entrar en Config Alarmas
@@ -819,7 +820,7 @@ void STATE_Receive_Data(uint8_t Tecla)                          //Receive Data:
 	{
 		ReceiveDataMode = ENABLED;
 		ExternalClock = DISABLED;
-		LCD_Full_Display("Waiting Data...", "UP to Cancel");
+		LCD_Full_Display("Waiting Data...", "<UP to Cancel>");
 		STATE = Receive_Data_LINK;
 	}
 }
@@ -827,12 +828,13 @@ void STATE_Receive_Data(uint8_t Tecla)                          //Receive Data:
 
 void STATE_Receive_Data_LINK(uint8_t Tecla)                     //Receive Data:
 {
+	printf("data parsed %d  ", dataParsed);
 	if(0 == dataParsed)
 		Rx_TLVParser();
 
 	if(1 == dataParsed)
 	{
-		LCD_Full_Display("Config Success!", "UP to Exit");
+		LCD_Full_Display("Config Success!", " <UP to Exit>");
 	}
 
 	if(Tecla == TECLA_UP)
@@ -840,7 +842,7 @@ void STATE_Receive_Data_LINK(uint8_t Tecla)                     //Receive Data:
 		 dataParsed = 0;
 		 ReceiveDataMode = DISABLED;
 		 ExternalClock = ENABLED;
-		 LCD_Full_Display("Send Config", "from PC:");
+		 LCD_Full_Display("Set Date & Time", "from PC?");
 		 STATE = Receive_Data;
 	}
 }
@@ -1097,7 +1099,7 @@ void STATE_AlarmsSettings(uint8_t Tecla)                     //Alarms Settings:
 	}
 	if(Tecla == TECLA_EDIT)
 	{
-		mem = IIC_Read_Driver(0xA0, 0);  //Lee el byte de memoria y lo guarda en variable global mem
+		//mem = IIC_Read_Driver(0xA0, 0);  //Lee el byte de memoria y lo guarda en variable global mem
 		LCD_Full_Display("Set Alarms SO2:"," ");
 		STATE = Set_Alarms_SO2;
 	}
@@ -1117,20 +1119,22 @@ void STATE_Set_Alarms_SO2(uint8_t Tecla)
 }
 void STATE_Set_Alarm_SO2_LO(uint8_t Tecla, uint8_t Tecla_Multi)
 {
-	sprintf(LCD_Buffer_Line1,"SO2 LO Alarm: %01d", mem);
+	sprintf(LCD_Buffer_Line1,"SO2 LO Alarm: %01d", Unit_Data.SO2_Config.LO_ALarm);
 	sprintf(LCD_Buffer_Line2,"Set new: %01d", Unit_Data_NEW.SO2_Config.LO_ALarm);
 	LCD_Full_Display(LCD_Buffer_Line1, LCD_Buffer_Line2);
 
 	if(Tecla_Multi == TECLA_UP)
 	{
-		if(Unit_Data_NEW.SO2_Config.LO_ALarm < 9) Unit_Data_NEW.SO2_Config.LO_ALarm ++;  //Incrementa el dato en variable provisoria
+		if(Unit_Data_NEW.SO2_Config.LO_ALarm < 9 && Unit_Data_NEW.SO2_Config.LO_ALarm < Unit_Data.SO2_Config.HI_ALarm)
+			Unit_Data_NEW.SO2_Config.LO_ALarm ++;  //Incrementa el dato en variable provisoria
+
 		else Unit_Data_NEW.SO2_Config.LO_ALarm = 1;
 	}
 	if(Tecla == TECLA_EDIT)    // Valida el dato guardándolo en la variable permanente
 	{
 		Unit_Data.SO2_Config.LO_ALarm = Unit_Data_NEW.SO2_Config.LO_ALarm;
 
-		IIC_Write_Driver(0xA0, 0, Unit_Data_NEW.SO2_Config.LO_ALarm);  //Prueba de grabado de 1 byte en memoria EEPROM
+		//IIC_Write_Driver(0xA0, 0, Unit_Data_NEW.SO2_Config.LO_ALarm);  //Prueba de grabado de 1 byte en memoria EEPROM
 
 		STATE = Set_Alarm_SO2_HI;
 	}
@@ -1148,8 +1152,10 @@ void STATE_Set_Alarm_SO2_HI(uint8_t Tecla, uint8_t Tecla_Multi)
 
 	if(Tecla_Multi == TECLA_UP)
 	{
-		if(Unit_Data_NEW.SO2_Config.HI_ALarm < 9) Unit_Data_NEW.SO2_Config.HI_ALarm ++;  //Incrementa el dato en variable provisoria
-		else Unit_Data_NEW.SO2_Config.HI_ALarm = 1;
+		if((Unit_Data_NEW.SO2_Config.HI_ALarm < 9) && (Unit_Data_NEW.SO2_Config.HI_ALarm >= Unit_Data.SO2_Config.LO_ALarm))
+			Unit_Data_NEW.SO2_Config.HI_ALarm ++;  //Incrementa el dato en variable provisoria
+
+		else Unit_Data_NEW.SO2_Config.HI_ALarm = Unit_Data.SO2_Config.LO_ALarm;
 	}
 	if(Tecla == TECLA_EDIT)    // Valida el dato guardándolo en la variable permanente
 	{
@@ -1185,8 +1191,10 @@ void STATE_Set_Alarm_CO_LO(uint8_t Tecla, uint8_t Tecla_Multi)
 
 	if(Tecla_Multi == TECLA_UP)
 	{
-		if(Unit_Data_NEW.CO_Config.LO_ALarm < 99) Unit_Data_NEW.CO_Config.LO_ALarm ++;  //Incrementa el dato en variable provisoria
-		else Unit_Data_NEW.CO_Config.LO_ALarm = 1;
+		if(Unit_Data_NEW.CO_Config.LO_ALarm < 99 && Unit_Data_NEW.CO_Config.LO_ALarm < Unit_Data.CO_Config.HI_ALarm)
+			Unit_Data_NEW.CO_Config.LO_ALarm ++;  //Incrementa el dato en variable provisoria
+
+			else Unit_Data_NEW.CO_Config.LO_ALarm = 1;
 	}
 	if(Tecla == TECLA_EDIT)    // Valida el dato guardándolo en la variable permanente
 	{
@@ -1207,8 +1215,10 @@ void STATE_Set_Alarm_CO_HI(uint8_t Tecla, uint8_t Tecla_Multi)
 
 	if(Tecla_Multi == TECLA_UP)
 	{
-		if(Unit_Data_NEW.CO_Config.HI_ALarm < 99) Unit_Data_NEW.CO_Config.HI_ALarm ++;  //Incrementa el dato en variable provisoria
-		else Unit_Data_NEW.CO_Config.HI_ALarm = 1;
+		if(Unit_Data_NEW.CO_Config.HI_ALarm < 99 && Unit_Data_NEW.CO_Config.HI_ALarm >= Unit_Data.CO_Config.LO_ALarm)
+			Unit_Data_NEW.CO_Config.HI_ALarm ++;  //Incrementa el dato en variable provisoria
+
+		else Unit_Data_NEW.CO_Config.HI_ALarm = Unit_Data.CO_Config.LO_ALarm;
 	}
 	if(Tecla == TECLA_EDIT)    // Valida el dato guardándolo en la variable permanente
 	{
@@ -1245,7 +1255,9 @@ void STATE_Set_Alarm_EX_LO(uint8_t Tecla, uint8_t Tecla_Multi)
 
 	if(Tecla_Multi == TECLA_UP)
 	{
-		if(Unit_Data_NEW.EX_Config.LO_ALarm < 99) Unit_Data_NEW.EX_Config.LO_ALarm ++;  //Incrementa el dato en variable provisoria
+		if(Unit_Data_NEW.EX_Config.LO_ALarm < 99 && Unit_Data_NEW.EX_Config.LO_ALarm < Unit_Data.EX_Config.HI_ALarm)
+			Unit_Data_NEW.EX_Config.LO_ALarm ++;  //Incrementa el dato en variable provisoria
+
 		else Unit_Data_NEW.EX_Config.LO_ALarm = 1;
 	}
 	if(Tecla == TECLA_EDIT)    // Valida el dato guardándolo en la variable permanente
@@ -1267,8 +1279,10 @@ void STATE_Set_Alarm_EX_HI(uint8_t Tecla, uint8_t Tecla_Multi)
 
 	if(Tecla_Multi == TECLA_UP)
 	{
-		if(Unit_Data_NEW.EX_Config.HI_ALarm < 99) Unit_Data_NEW.EX_Config.HI_ALarm ++;  //Incrementa el dato en variable provisoria
-		else Unit_Data_NEW.EX_Config.HI_ALarm = 1;
+		if(Unit_Data_NEW.EX_Config.HI_ALarm < 99 && Unit_Data_NEW.EX_Config.HI_ALarm >= Unit_Data.EX_Config.LO_ALarm)
+			Unit_Data_NEW.EX_Config.HI_ALarm ++;  //Incrementa el dato en variable provisoria
+
+		else Unit_Data_NEW.EX_Config.HI_ALarm = Unit_Data.EX_Config.LO_ALarm;
 	}
 	if(Tecla == TECLA_EDIT)    // Valida el dato guardándolo en la variable permanente
 	{
